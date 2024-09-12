@@ -1,0 +1,15 @@
+USE [tarea2BD]
+GO 
+
+
+CREATE TABLE dbo.Movimiento
+(
+	Id INT IDENTITY (1,1) PRIMARY KEY
+	, IdEmpleado INT NOT NULL FOREIGN KEY REFERENCES dbo.Empleado(Id)
+	, IdTipoMovimiento INT NOT NULL FOREIGN KEY REFERENCES dbo.TipoMovimiento(Id)
+	, Monto MONEY NOT NULL
+	, NuevoSaldo MONEY NOT NULL
+	, IdPostByUser INT NOT NULL FOREIGN KEY REFERENCES dbo.Usuario(Id)
+	, PostInIP VARCHAR(128) NOT NULL 
+	, PostTime DATETIME NOT NULL 
+);
