@@ -12,9 +12,11 @@ DECLARE  @XmlTable TABLE
 --Metemos el  XML a la tabla variable 
 INSERT INTO @XmlTable(XmlCol)
 SELECT BulkColumn
-FROM OPENROWSET(
+FROM OPENROWSET
+(
     BULK 'C:\prueba\datos.xml'
-	, SINGLE_BLOB)
+	, SINGLE_BLOB
+)
 AS x;
 
 
@@ -22,19 +24,23 @@ AS x;
 INSERT INTO dbo.Puesto  
 SELECT result.Nombre, result.SalarioxHora
 FROM @XmlTable
-CROSS APPLY (
+CROSS APPLY 
+(
     SELECT
-        Nombre = z.value('@Nombre', 'VARCHAR(128)'),
-        SalarioxHora = z.value('@SalarioxHora', 'MONEY')
+        Nombre = z.value('@Nombre', 'VARCHAR(128)')
+		, SalarioxHora = z.value('@SalarioxHora', 'MONEY')
     FROM XmlCol.nodes('Datos/Puestos/Puesto') AS T(z)
 ) AS result;
 
 
                          --AHORA CARGUEMOS LOS DATOS DE Tipo de Movimiento
 INSERT INTO dbo.TipoMovimiento 
-Select result.Id, result.Nombre, result.TipoDeAccion
+Select result.Id
+      , result.Nombre
+	  , result.TipoDeAccion
 FROM @XmlTable
-CROSS APPLY (
+CROSS APPLY 
+(
     SELECT
 		Id = z.value('@Id', 'INT')
 		, Nombre = z.value('@Nombre', 'VARCHAR(128)')
@@ -44,9 +50,11 @@ CROSS APPLY (
 
                          --AHORA CARGUEMOS LOS DATOS DE Error
 INSERT INTO dbo.Error 
-Select result.Codigo, result.Descripcion
+Select result.Codigo
+	   , result.Descripcion
 FROM @XmlTable
-CROSS APPLY (
+CROSS APPLY 
+(
     SELECT
 		Codigo = z.value('@Codigo', 'INT')
 		, Descripcion = z.value('@Descripcion', 'VARCHAR(128)')
@@ -56,9 +64,11 @@ CROSS APPLY (
 
                          --AHORA CARGUEMOS LOS DATOS DE Tipo de Eveno
 INSERT INTO dbo.TipoEvento 
-Select result.Id, result.Nombre
+Select result.Id
+       , result.Nombre
 FROM @XmlTable
-CROSS APPLY (
+CROSS APPLY 
+(
     SELECT
 		Id = z.value('@Id', 'INT')
 		, Nombre = z.value('@Nombre', 'VARCHAR(128)')
@@ -72,9 +82,12 @@ CROSS APPLY (
 
       --AHORA CARGUEMOS LOS DATOS DE USUARIo
 INSERT INTO [dbo].[Usuario] 
-Select result.Id, result.Username, result.Pass 
+Select result.Id
+	   , result.Username
+	   , result.Pass 
 FROM @XmlTable
-CROSS APPLY (
+CROSS APPLY 
+(
     SELECT
 		Id = z.value('@Id', 'INT')
 		, Username = z.value('@Username','VARCHAR(128)')
@@ -96,10 +109,20 @@ DECLARE  @empleado TABLE -- a este si es mejor hacerle una tabla variable para
 	, EsActivo INT NOT NULL DEFAULT 1
 );
 
-INSERT INTO @empleado(Puesto, Nombre, ValorDocumentoIdentidad, FechaContratacion)
-Select result.Puesto, result.Nombre, result.ValorDocumentoIdentidad, result.FechaContratacion 
+INSERT INTO @empleado
+(	
+	Puesto
+	, Nombre
+	, ValorDocumentoIdentidad
+	, FechaContratacion
+)
+Select result.Puesto
+       , result.Nombre
+	   , result.ValorDocumentoIdentidad
+	   , result.FechaContratacion 
 FROM @XmlTable
-CROSS APPLY (
+CROSS APPLY 
+(
     SELECT
 		Puesto = z.value('@Puesto','VARCHAR(128)')
 		, Nombre = z.value('@Nombre', 'VARCHAR(128)')
@@ -118,13 +141,12 @@ INSERT dbo.Empleado
 	, SaldoVacaciones
 	, EsActivo
 )
-SELECT
-	  P.Id
-	  , E.Nombre 
-	  , E.ValorDocumentoIdentidad 
-	  , E.FechaContratacion 
-	  , E.SaldoVacaciones 
-	  , E.EsActivo 
+SELECT P.Id
+	   , E.Nombre 
+	   , E.ValorDocumentoIdentidad 
+	   , E.FechaContratacion 
+	   , E.SaldoVacaciones 
+	   , E.EsActivo 
 FROM @empleado E
 INNER JOIN dbo.Puesto P ON E.Puesto = P.Nombre;
 
@@ -143,21 +165,24 @@ DECLARE  @movimientos TABLE -- a este si es mejor hacerle una tabla variable par
 	, PostTime DATETIME NOT NULL
 );
 
-INSERT INTO @movimientos(ValorDocId
-						 , IdTipoMovimiento 
-						 , Monto 
-						 , PostByUser
-						 , PostInIP 
-						 , PostTime 
-						 )
+INSERT INTO @movimientos
+(
+	ValorDocId
+	, IdTipoMovimiento 
+	, Monto 
+	, PostByUser
+	, PostInIP 
+	, PostTime 
+)
 Select result.ValorDocId
-	, result.IdTipoMovimiento 
-	, result.Monto 
-	, result.PostByUser
-	, result.PostInIP 
-	, result.PostTime  
+	   , result.IdTipoMovimiento 
+	   , result.Monto 
+	   , result.PostByUser
+	   , result.PostInIP 
+	   , result.PostTime  
 FROM @XmlTable
-CROSS APPLY (
+CROSS APPLY 
+(
     SELECT
 		ValorDocId = z.value('@ValorDocId','INT')
 		, IdTipoMovimiento = z.value('@IdTipoMovimiento', 'VARCHAR(128)')
@@ -179,14 +204,13 @@ INSERT dbo.Movimiento
 	, PostTime
 	, IdTipoMovimiento
 )
-SELECT
-	  E.Id -- id del empleado 
-	  , M.Monto
-	  , E.SaldoVacaciones + M.Monto AS NuevoSaldo -- sumar/restar Monto mas saldoVacaciones
-	  , U.Id --Id del usuario 
-	  , M.PostInIP
-	  , M.PostTime
-	  , V.Id --Id del tipo de Mov 
+SELECT E.Id -- id del empleado 
+	   , M.Monto
+	   , E.SaldoVacaciones + M.Monto AS NuevoSaldo -- sumar/restar Monto mas saldoVacaciones
+	   , U.Id --Id del usuario 
+	   , M.PostInIP
+	   , M.PostTime
+	   , V.Id --Id del tipo de Mov 
 FROM @movimientos M
 INNER JOIN dbo.Empleado E ON M.ValorDocId = E.ValorDocumentoIdentidad
 INNER JOIN dbo.Usuario U ON M.PostByUser = U.Username
