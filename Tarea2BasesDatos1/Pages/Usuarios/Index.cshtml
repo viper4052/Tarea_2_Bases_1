@@ -1,0 +1,34 @@
+﻿@page
+@model Tarea2BasesDatos1.Pages.Usuarios.IndexModel
+@{
+	var successMessage = Model.SuccessMessage;
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+	<div class="alert alert-success">
+		@successMessage
+	</div>
+}
+
+<br>
+<h2>Lista de usuarios</h2>
+<a class='btn btn-primary btn-sm' href='/Usuarios/Create'>Nuevo Usuario</a>
+<table class="table">
+	<thead>
+		<tr>
+			<th>Username</th>
+			<th>Password</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model.listaUsuarios)
+		{
+			<tr>
+				<td>@item.Username</td>
+				@*<td>@item.Password</td>*@
+			</tr>
+		}
+	</tbody>
+</table>
+<br />
