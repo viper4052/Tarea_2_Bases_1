@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Tarea2BasesDatos1.Pages
+namespace Tarea_2_BD.Pages
 {
     public class IndexModel : PageModel
     {
