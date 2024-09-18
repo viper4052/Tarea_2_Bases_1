@@ -12,14 +12,14 @@
     <div class="row mb-3">
         <label class="col-sm-3 col-form-label">Ususario</label>
         <div class="col-sm-6">
-            <input type="text" class="form-control" name="Nombre" value="@LoginModel.Usuario.Nombre">
+            <input type="text" class="form-control" name="Nombre" value="@Model.user.Username">
         </div>
     </div>
 
     <div class="row mb-3">
         <label class="col-sm-3 col-form-label">Contraseña</label>
         <div class="col-sm-6">
-            <input type="text" class="form-control" name="Salario" value="@LoginModel.Usuario.Pass">
+            <input type="password" class="form-control" name="Contraseña" value="@Model.user.Pass">
         </div>
     </div>
 
@@ -27,11 +27,9 @@
 
     <div class="row mb-3">
         <div class="offset-sm-3 col-sm-3 d-grid">
-            <button type="submit" class="btn btn-primary">Insertar</button>
+            <button type="submit" class="btn btn-primary">Ingresar</button>
         </div>
-        <div class="col-sm-3 d-grid">
-            <a class="btn btn-outline-primary" href="/" role="button">Regresar</a>
-        </div>
+
     </div>
 
 </form>
