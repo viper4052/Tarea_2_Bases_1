@@ -81,27 +81,51 @@ namespace Tarea_2_BD.Pages.LogIn
 
                 if (resultCode == 0)
                 {
-                    Console.WriteLine("HOLAAA");
+                    Console.WriteLine("0");
                     return Page();
                 }
 
-                if (resultCode == 50001)
+                else
                 {
-                    Console.WriteLine("50001");
-                    return Page();
-                }
 
-                if (resultCode == 50002)
-                {
-                    Console.WriteLine("50002");
-                    return Page();
-                }
+               
 
-                
+                    SQL.Open();
+                    SQL.command = new SqlCommand("[dbo].[BuscaTipoDeError]", SQL.connection);     //HACER UNA FUNCION QUE SOLO HAGA FALTA PASARLE LOS PARAMETROS
+                    SQL.command.CommandType = CommandType.StoredProcedure;                     //Y OTRA PARA PASAR EL TIPO DE COMANDO 
+
+                    SQL.command.Parameters.Add(new SqlParameter("@InCodigo", SqlDbType.Int));
+                    SQL.command.Parameters["@InCodigo"].Value = resultCode;
+
+                    outResultCode = new SqlParameter("@OutResultCode", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    SQL.command.Parameters.Add(outResultCode);
+
+                    var outDescription = new SqlParameter("@OutDescripcion", SqlDbType.VarChar, 128)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    SQL.command.Parameters.Add(outDescription);
+
+
+                    SQL.command.ExecuteNonQuery();
+
+
+                    errorMessage = (String)SQL.command.Parameters["@OutDescripcion"].Value;
+
+                    SQL.Close();
+
+                    return Page();
+
+
+                }
+                       
             }    
 
 
-            return Page();
+          
         }
 
 
