@@ -58,7 +58,7 @@ CROSS APPLY
     SELECT
 		Codigo = z.value('@Codigo', 'INT')
 		, Descripcion = z.value('@Descripcion', 'VARCHAR(128)')
-    FROM XmlCol.nodes('Datos/Errores/error') T(z)
+    FROM XmlCol.nodes('Datos/Error/error') T(z)
 ) result;
 
 
@@ -90,7 +90,7 @@ CROSS APPLY
 (
     SELECT
 		Id = z.value('@Id', 'INT')
-		, Username = z.value('@Username','VARCHAR(128)')
+		, Username = z.value('@Nombre','VARCHAR(128)')
 		, Pass = z.value('@Pass','VARCHAR(128)')
     FROM XmlCol.nodes('Datos/Usuarios/usuario') T(z)
 ) result;
