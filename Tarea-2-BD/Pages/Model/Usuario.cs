@@ -9,7 +9,7 @@ namespace Tarea_2_BD.Pages.Model
         public int Id { get; set; }
 
         [DisplayName("Nombre")]
-        [Required]
+        [Required] 
         public String Username { get; set; }
 
         [DisplayName("Password")]

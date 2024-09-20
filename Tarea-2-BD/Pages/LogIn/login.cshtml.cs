@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel;
 using Tarea_2_BD.Pages.Model;
 using System.Data.SqlClient;
 using System.Data;
+using System.Net;
 
 namespace Tarea_2_BD.Pages.LogIn
 {
@@ -22,6 +21,24 @@ namespace Tarea_2_BD.Pages.LogIn
         {
         }
 
+
+        public int BuscarUsuario()
+        {
+            SQL.Open();
+            SQL.LoadSP("[dbo].[BuscarUsuario]");
+
+            SQL.InParameter("@InUsername", user.Username, SqlDbType.VarChar);
+            SQL.InParameter("@InPassword", user.Pass, SqlDbType.VarChar);
+
+            SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
+
+            SQL.ExecSP();
+            SQL.Close();
+            
+            return (int)SQL.command.Parameters["@OutResultCode"].Value; ;
+        }
+
+        
         public ActionResult OnPost()
         {
             String Username = Request.Form["Nombre"];
@@ -30,7 +47,7 @@ namespace Tarea_2_BD.Pages.LogIn
 
             String Password = Request.Form["Contraseña"];
 
-
+            
             //verifica que los campos no esten vacios
             if (String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password))
             {
@@ -38,6 +55,8 @@ namespace Tarea_2_BD.Pages.LogIn
                 return Page();
             }
 
+            //asignamos la password 
+            user.Pass = Password;
 
             //verifica que el usuario no haya ingresado caracteres no validos 
             if (esSoloAlfabeticoYGuionBajo)
@@ -52,84 +71,48 @@ namespace Tarea_2_BD.Pages.LogIn
 
             //Ahora revisemos si el usuario esta en la BD
 
-            user.Pass = Password;
+            
 
             using (SQL.connection)
             {
-               
-                SQL.Open();
-                SQL.command = new SqlCommand("[dbo].[BuscarUsuario]", SQL.connection);     //HACER UNA FUNCION QUE SOLO HAGA FALTA PASARLE LOS PARAMETROS
-                SQL.command.CommandType = CommandType.StoredProcedure;                     //Y OTRA PARA PASAR EL TIPO DE COMANDO 
 
-                SQL.command.Parameters.Add(new SqlParameter("@InUsername", SqlDbType.VarChar));
-                SQL.command.Parameters.Add(new SqlParameter("@InPassword", SqlDbType.VarChar));
-                SQL.command.Parameters["@InUsername"].Value = user.Username;
-                SQL.command.Parameters["@InPassword"].Value = user.Pass;
+                
+                int resultCode = BuscarUsuario();
+                String Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-                var outResultCode = new SqlParameter("@OutResultCode", SqlDbType.Int)
+                if (resultCode == 0) //login exitoso
                 {
-                    Direction = ParameterDirection.Output
-                };
-                SQL.command.Parameters.Add(outResultCode);
+                    
+                    
+                    resultCode = SQL.IngresarBitacora("Login Exitoso","",user.Username,Ip); //este comando inserta en bitacora el evento exitoso
 
-                SQL.command.ExecuteNonQuery();
+                    
 
-
-                int resultCode = (int)SQL.command.Parameters["@OutResultCode"].Value;
-
-                SQL.Close();
-
-                if (resultCode == 0)
-                {
-                    Console.WriteLine("0");
-                    return Page();
+                    if (resultCode != 0)
+                    {
+                        errorMessage = SQL.BuscarError(resultCode);
+                        return Page();
+                    }
+                    return RedirectToPage("/View/Insert/Employee");
                 }
 
                 else
-                {
-
-               
-
-                    SQL.Open();
-                    SQL.command = new SqlCommand("[dbo].[BuscaTipoDeError]", SQL.connection);     //HACER UNA FUNCION QUE SOLO HAGA FALTA PASARLE LOS PARAMETROS
-                    SQL.command.CommandType = CommandType.StoredProcedure;                     //Y OTRA PARA PASAR EL TIPO DE COMANDO 
-
-                    SQL.command.Parameters.Add(new SqlParameter("@InCodigo", SqlDbType.Int));
-                    SQL.command.Parameters["@InCodigo"].Value = resultCode;
-
-                    outResultCode = new SqlParameter("@OutResultCode", SqlDbType.Int)
-                    {
-                        Direction = ParameterDirection.Output
-                    };
-                    SQL.command.Parameters.Add(outResultCode);
-
-                    var outDescription = new SqlParameter("@OutDescripcion", SqlDbType.VarChar, 128)
-                    {
-                        Direction = ParameterDirection.Output
-                    };
-                    SQL.command.Parameters.Add(outDescription);
+                {    
+                    String Descripcion = resultCode.ToString();
 
 
-                    SQL.command.ExecuteNonQuery();
+                    errorMessage = SQL.BuscarError(resultCode);
 
-
-                    errorMessage = (String)SQL.command.Parameters["@OutDescripcion"].Value;
-
-                    SQL.Close();
-
+                    resultCode = SQL.IngresarBitacora("Login No Exitoso", "", user.Username, Ip); //este comando inserta en bitacora el fracaso
+                    
                     return Page();
-
+                    
 
                 }
                        
-            }    
-
-
+            }
           
         }
-
-
-
 
     }
 

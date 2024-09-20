@@ -32,3 +32,10 @@ ON dbo.Empleado
 	ValorDocumentoIdentidad ASC   --Indice ascendente 
 )
 GO
+
+CREATE NONCLUSTERED INDEX Idx_BitacoraEvento_PostTime 
+ON dbo.BitacoraEvento 
+(
+	PostTime DESC
+);
+GO

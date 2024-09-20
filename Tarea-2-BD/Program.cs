@@ -20,6 +20,8 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+app.MapGet("/", () => Results.Redirect("/Login/login"));  //esto es para que la pagina predeterminada sea la del login
+
 app.MapRazorPages();
 
 app.Run();
