@@ -31,7 +31,10 @@ BEGIN
 	-- letras en los nombres
 	IF @InLetters IS NOT NULL
 		BEGIN
-			SELECT Nombre FROM dbo.Empleado
+			SELECT Nombre
+				   , ValorDocumentoIdentidad
+			       , SaldoVacaciones 
+			FROM dbo.Empleado
 			WHERE Empleado.Nombre LIKE '%' + @InLetters + '%'
 		END
 	ElSE
@@ -39,7 +42,10 @@ BEGIN
 	-- buscar ids relacionados 
 		IF @InNumbers IS NOT NULL
 			BEGIN 
-				SELECT ValorDocumentoIdentidad FROM dbo.Empleado
+				SELECT Nombre
+				       , ValorDocumentoIdentidad
+			           , SaldoVacaciones 
+				FROM dbo.Empleado
 				WHERE CAST(Empleado.ValorDocumentoIdentidad AS VARCHAR(128)) LIKE  '%' + CAST(@InNumbers AS VARCHAR(128)) + '%';
 				
 			END
