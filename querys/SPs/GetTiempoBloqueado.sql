@@ -39,7 +39,17 @@ BEGIN
 	END TRY 
 
 	BEGIN CATCH 
-
+	INSERT INTO dbo.DBError VALUES 
+		(
+            SUSER_SNAME(),
+            ERROR_NUMBER(),
+            ERROR_STATE(),
+            ERROR_SEVERITY(),
+            ERROR_LINE(),
+            ERROR_PROCEDURE(),
+            ERROR_MESSAGE(),
+            GETDATE()
+        );
 	SET @OutResultCode = 50008;
 
 	END CATCH 

@@ -24,6 +24,7 @@ ALTER PROCEDURE [dbo].[BuscaTipoDeError]
 AS
 BEGIN
     SET NOCOUNT ON;
+	BEGIN TRY 
 	SET @OutResulTCode = 0;
 
     --Primero por si acaso revisaremos si el codigo existe
@@ -39,6 +40,22 @@ BEGIN
 	ELSE
 		SET @OutResulTCode = 50008;  --si no se encuentra el codigo de 
 									  -- es un error de BD 
+	END TRY 
+
+	BEGIN CATCH 
+	INSERT INTO dbo.DBError VALUES 
+		(
+            SUSER_SNAME(),
+            ERROR_NUMBER(),
+            ERROR_STATE(),
+            ERROR_SEVERITY(),
+            ERROR_LINE(),
+            ERROR_PROCEDURE(),
+            ERROR_MESSAGE(),
+            GETDATE()
+        );
+		SET @OutResulTCode = 50008;
+	END CATCH 
     SET NOCOUNT OFF;
 END;
 GO
