@@ -14,14 +14,55 @@ namespace Tarea_2_BD.Pages.LogIn
         public Usuario user = new Usuario();
         public String errorMessage = "";
         public ConnectSQL SQL = new ConnectSQL();
-        
+        public bool LoginActivo = true;
+        public String Ip;
         
         
         public void OnGet()
         {
+            
+            
+
+
+            int tiempoFuera = GetTiempoBloqueado();
+            
+            if(tiempoFuera < 0)
+            {
+                LoginActivo = true;
+            }
+            else
+            {
+                errorMessage = "Demasiados intentos de login, intente de nuevo dentro de " + tiempoFuera.ToString() + " minutos";
+                LoginActivo = false;
+            }
+            
+            
         }
 
 
+
+        public int GetTiempoBloqueado()
+        {
+            SQL.Open();
+            SQL.LoadSP("[dbo].[GetTiempoBloqueado]");
+
+            SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
+            SQL.OutParameter("@OutTime", SqlDbType.Int, 0);
+
+            SQL.ExecSP();
+            SQL.Close();
+
+            try
+            {
+                int Time = (int)SQL.command.Parameters["@OutTime"].Value;
+                return 10-Time;
+            }
+            catch
+            {
+                return -1;
+            }
+           
+        }
         public int BuscarUsuario()
         {
             SQL.Open();
@@ -35,12 +76,50 @@ namespace Tarea_2_BD.Pages.LogIn
             SQL.ExecSP();
             SQL.Close();
             
-            return (int)SQL.command.Parameters["@OutResultCode"].Value; ;
+            return (int)SQL.command.Parameters["@OutResultCode"].Value; 
+        }
+
+        public int GetIntentos(String pTipoEvento, String pUserName)
+        {
+            SQL.Open();
+            SQL.LoadSP("[dbo].[GetIntentos]");
+
+            SQL.InParameter("@InUsername", pUserName, SqlDbType.VarChar);
+            SQL.InParameter("@InTipoEvento", pTipoEvento, SqlDbType.VarChar);
+
+            SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
+            SQL.OutParameter("@OutIntentos", SqlDbType.Int, 0);
+
+            SQL.ExecSP();
+
+            int codeResult = (int)SQL.command.Parameters["@OutResultCode"].Value;
+            int tries = (int)SQL.command.Parameters["@OutIntentos"].Value;
+
+            SQL.Close();
+
+
+           
+            if (codeResult != 0)
+            {
+                errorMessage = SQL.BuscarError(codeResult);
+
+                if (codeResult == 50003)
+                {
+                    LoginActivo = false;
+                    SQL.IngresarBitacora("Login deshabilitado", "", user.Username, Ip);
+                }
+            }
+            
+ 
+            return tries;
+
         }
 
         
         public ActionResult OnPost()
         {
+            Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
             String Username = Request.Form["Nombre"];
 
             bool esSoloAlfabeticoYGuionBajo = Username.All(c => char.IsLetter(c) || c == '_' || c == ' ');
@@ -78,7 +157,7 @@ namespace Tarea_2_BD.Pages.LogIn
 
                 
                 int resultCode = BuscarUsuario();
-                String Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+               
 
                 if (resultCode == 0) //login exitoso
                 {
@@ -98,12 +177,17 @@ namespace Tarea_2_BD.Pages.LogIn
 
                 else
                 {    
-                    String Descripcion = resultCode.ToString();
+                    
 
 
                     errorMessage = SQL.BuscarError(resultCode);
 
-                    resultCode = SQL.IngresarBitacora("Login No Exitoso", "", user.Username, Ip); //este comando inserta en bitacora el fracaso
+                    int intentos = GetIntentos("Login No Exitoso", user.Username);
+
+                    String descripcion = intentos.ToString() + "," + resultCode.ToString();
+
+
+                    resultCode = SQL.IngresarBitacora("Login No Exitoso", descripcion, user.Username, Ip); //este comando inserta en bitacora el fracaso
                     
                     return Page();
                     
