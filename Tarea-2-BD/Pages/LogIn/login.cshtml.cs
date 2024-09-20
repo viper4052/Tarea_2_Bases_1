@@ -176,9 +176,16 @@ namespace Tarea_2_BD.Pages.LogIn
                 }
 
                 else
-                {    
-                    
+                {
+                    String tempUser = user.Username;
+                    if (50001 ==  resultCode)
+                    {
+                        
+                        user.Username = "LOGINFALLIDO"; //esto es para que cuando se usa un usuario que no es parte de la base de datos se 
+                    }  //                              se le asigne ese user 
 
+                    Console.WriteLine(resultCode);
+                    Console.WriteLine(user.Username);
 
                     errorMessage = SQL.BuscarError(resultCode);
 
@@ -188,7 +195,8 @@ namespace Tarea_2_BD.Pages.LogIn
 
 
                     resultCode = SQL.IngresarBitacora("Login No Exitoso", descripcion, user.Username, Ip); //este comando inserta en bitacora el fracaso
-                    
+
+                    user.Username = tempUser; 
                     return Page();
                     
 
