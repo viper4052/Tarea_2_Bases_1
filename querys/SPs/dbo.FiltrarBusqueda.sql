@@ -1,33 +1,54 @@
-﻿CREATE PROCEDURE [dbo].[FiltrarBusqueda]
+﻿USE [tarea2BD]
+go
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+/* Filtra los Empleados
+segun el id o letras que se pongan */
+
+--  Descripcion de parametros: 
+
+--  @outResultCode: codigo de resultado de ejecucion. 0 Corrio sin errores, 
+--  @@InLetters: las letras a buscar
+--  @@InNumbers: los numeros a buscar 
+
+
+
+ALTER PROCEDURE [dbo].[FiltrarBusqueda]
 	@OutResulTCode INT OUTPUT
-	, @InLetters VARCHAR(128) = null
-	, @InNumbers INT = null
+	, @InLetters VARCHAR(128) 
+	, @InNumbers INT 
 
 AS
 BEGIN
 	SET NOCOUNT ON;
 	SET @OutResulTCode = 0;
 
-	-- Busca usuario por USERNAME
+	-- letras en los nombres
 	IF @InLetters IS NOT NULL
-	(
-		SELECT Nombre FROM dbo.Empleado
-		WHERE Empleado.Nombre LIKE '%' + @InLetters + '%'
-	)
-	BEGIN 
-		SET @OutResulTCode = 50007;
-		EXEC ListarEmpleados @OutresulTcode =0;
-	END 
-
-	IF @InNumbers IS NOT NULL
-	(
-		SELECT ValorDocumentoIdentidad FROM dbo.Empleado
-		WHERE Empleado.ValorDocumentoIdentidad LIKE '%' + @InNumbers + '%'
-	)
-	BEGIN 
-		SET @OutResulTCode = 50009;
-		EXEC ListarEmpleados @OutresulTcode =0;
-	END
+		BEGIN
+			SELECT Nombre FROM dbo.Empleado
+			WHERE Empleado.Nombre LIKE '%' + @InLetters + '%'
+		END
+	ElSE
+		BEGIN
+	-- buscar ids relacionados 
+		IF @InNumbers IS NOT NULL
+			BEGIN 
+				SELECT ValorDocumentoIdentidad FROM dbo.Empleado
+				WHERE CAST(Empleado.ValorDocumentoIdentidad AS VARCHAR(128)) LIKE  '%' + CAST(@InNumbers AS VARCHAR(128)) + '%';
+				
+			END
+		ELSE
+			BEGIN 
+				SET @OutResulTCode = 50008;
+				EXEC ListarEmpleados @OutResulTCode = 0;
+			END
+		END 
 
 	SET NOCOUNT OFF;
 	

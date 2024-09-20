@@ -1,4 +1,19 @@
-﻿CREATE PROCEDURE [dbo].[ListarEmpleados]
+﻿USE [tarea2BD]
+go
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+/* Lista a todos los empleados en la BD*/
+
+--  Descripcion de parametros: 
+
+--  @outResultCode: codigo de resultado de ejecucion. 0 Corrio sin errores, 
+
+CREATE PROCEDURE [dbo].[ListarEmpleados]
     @OutResulTCode INT OUTPUT
 AS
 BEGIN
@@ -6,7 +21,6 @@ BEGIN
     BEGIN TRY
         -- Inicializar el valor de retorno
         SET @OutResulTCode = 0;
-		SELECT @OutResulTCode AS OutResulTCode;  -- Este codigo se agrega solo si hay problemas para obtener este  valor como parametros
 
 
         -- Seleccionar los empleados en orden alfabético
@@ -19,10 +33,12 @@ BEGIN
 
     END TRY
     BEGIN CATCH
-         -- Establecer un código de error estándar
-        SET @OutResulTCode = 50005;
+		-- Error de Base de Datos 
+        SET @OutResulTCode = 50008;
     END CATCH;
 
     SET NOCOUNT OFF;
 END;
 GO
+
+
