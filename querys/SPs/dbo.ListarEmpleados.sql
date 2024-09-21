@@ -21,6 +21,7 @@ BEGIN
     BEGIN TRY
         -- Inicializar el valor de retorno
         SET @OutResulTCode = 0;
+		SELECT @OutResulTCode AS OutResulTCode;
 
 
         -- Seleccionar los empleados en orden alfabético

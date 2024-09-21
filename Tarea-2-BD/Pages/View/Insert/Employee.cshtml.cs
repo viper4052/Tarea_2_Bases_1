@@ -15,38 +15,28 @@ namespace Tarea_2_BD.Pages.View.Insert
 		public Empleado empleado = new Empleado();
 
 		public ConnectSQL SQL = new ConnectSQL();
-		SqlConnection connection = null;
-		SqlCommand command = null;
 		public static IConfiguration Configuration { get; set; }
 
 		public string SuccessMessage { get; set; }
 
-		private string getConnectionString()   //este metodo llama al connection string que haya en el json de appsetings
-		{
-			var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json");
-			Configuration = builder.Build();
-			return Configuration.GetConnectionString("DefaultConnection");
-
-		}
+		
 
 		public void OnGet()
 		{
 			SuccessMessage = TempData["SuccessMessage"] as string; //esto verifica si se habia hecho una inserccion
 
 
-			using (connection = new SqlConnection(getConnectionString()))
+			using (SQL.connection)
 			{
 
-				connection.Open();
+				SQL.Open();
 
-				command = new SqlCommand("[dbo].[ListarEmpleados]", connection);
-				command.CommandType = CommandType.StoredProcedure;
+				SQL.LoadSP("[dbo].[ListarEmpleados]");
 
-				command.Parameters.Add(new SqlParameter("@OutResultCode", SqlDbType.Int));
-				command.Parameters["@OutResultCode"].Value = 0;
+				SQL.OutParameter("@OutResultCode", SqlDbType.Int,0);
 
 
-				using (SqlDataReader dr = command.ExecuteReader())
+				using (SqlDataReader dr = SQL.command.ExecuteReader())
 				{
 
 					if (dr.Read()) //primero verificamos si el resultcode es positivo
@@ -81,7 +71,7 @@ namespace Tarea_2_BD.Pages.View.Insert
 					}
 				}
 
-				connection.Close();
+				SQL.Close();
 			}
 
 		}
