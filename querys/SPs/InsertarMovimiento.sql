@@ -14,19 +14,90 @@ correspondiente al usuario, solo que */
 --  Descripcion de parametros: 
 
 --  @outResultCode: codigo de resultado de ejecucion. 0 Corrio sin errores, 
---  @outIntentos: da el numero de intentos 
---  @InTipoEvento: da el tipo de evento para así buscar su id
+--  @InDocIdEmpleado: da el documento de identidad del empleado 
+--  @InMonto: da el monto a sumar o rebajar 
 --  @InUsername: da el nombre del usuario con el buscaremos cual su Id
+--	@InPostInIP: da la ip del cambio
+--	@InPostTime: da la dattime del cambio
+--  @InNombreMovimiento: dice si es credito o debito 
 
-CREATE PROCEDURE [dbo].[InsertarMovimiento]
+ALTER PROCEDURE [dbo].[InsertarMovimiento]
 	@OutResultCode INT OUTPUT
-	, @InIdEmpleado
-	, @InMonto
-	, @InNuevoSaldo
-	, @InIdPostByUser
-	, @InPostInIP
-	, @InPostTime
-	, @InIdTipoMovimiento
+	, @InDocIdEmpleado INT
+	, @InMonto MONEY
+	, @InUserName VARCHAR(128)
+	, @InPostInIP VARCHAR(128)
+	, @InPostTime DATETIME 
+	, @InNombreMovimiento VARCHAR(128)
 AS
 BEGIN
 	SET NOCOUNT ON;
+
+	BEGIN TRY 
+	BEGIN TRANSACTION 
+	
+	DECLARE @CredODeb VARCHAR(128)
+	SELECT @CredODeb = TipoDeAccion FROM dbo.TipoMovimiento
+	WHERE Nombre = @InNombreMovimiento;
+
+	IF (@CredODeb = 'Credito')
+	BEGIN
+		UPDATE dbo.Empleado
+		SET SaldoVacaciones += @InMonto
+		WHERE ValorDocumentoIdentidad = @InDocIdEmpleado;
+	END;
+	ELSE 
+	BEGIN 
+		UPDATE dbo.Empleado
+		SET SaldoVacaciones -= @InMonto
+		WHERE ValorDocumentoIdentidad = @InDocIdEmpleado;
+	END;
+	
+
+	INSERT INTO dbo.Movimiento
+	(
+		IdEmpleado
+		, IdTipoMovimiento
+		, Monto
+		, NuevoSaldo
+		, IdPostByUser
+		, PostInIP
+		, PostTime
+	)
+	SELECT E.Id
+		   , T.Id
+		   , @InMonto
+		   , E.SaldoVacaciones
+		   , U.Id
+		   , @InPostInIP
+		   , @InPostTime
+        FROM dbo.Empleado E 
+        INNER JOIN dbo.TipoMovimiento T ON T.Nombre = @InNombreMovimiento
+        INNER JOIN dbo.Usuario U ON U.Username = @InUserName
+		WHERE E.ValorDocumentoIdentidad = @InDocIdEmpleado;
+
+
+	SET @OutResultCode = 0;	
+	COMMIT TRANSACTION;
+	END TRY 
+	BEGIN CATCH 
+	ROLLBACK TRANSACTION; 
+
+	INSERT INTO dbo.DBError VALUES 
+	(
+		SUSER_SNAME(),
+        ERROR_NUMBER(),
+        ERROR_STATE(),
+        ERROR_SEVERITY(),
+        ERROR_LINE(),
+        ERROR_PROCEDURE(),
+        ERROR_MESSAGE(),
+        GETDATE()
+	);
+	SET @OutResultCode = 50011; --error de saldo quedaria negativo  
+
+	END CATCH 
+
+	SET NOCOUNT OFF;
+END; 
+GO
