@@ -106,7 +106,7 @@ namespace Tarea_2_BD.Pages.LogIn
                 if (codeResult == 50003)
                 {
                     LoginActivo = false;
-                    SQL.IngresarBitacora("Login deshabilitado", "", user.Username, Ip);
+                    SQL.IngresarBitacora("Login deshabilitado", "", user.Username, Ip, DateTime.Now);
                 }
             }
             
@@ -162,8 +162,7 @@ namespace Tarea_2_BD.Pages.LogIn
                 if (resultCode == 0) //login exitoso
                 {
                     
-                    
-                    resultCode = SQL.IngresarBitacora("Login Exitoso","",user.Username,Ip); //este comando inserta en bitacora el evento exitoso
+                    resultCode = SQL.IngresarBitacora("Login Exitoso","",user.Username,Ip, DateTime.Now); //este comando inserta en bitacora el evento exitoso
 
                     
 
@@ -194,7 +193,7 @@ namespace Tarea_2_BD.Pages.LogIn
                     String descripcion = intentos.ToString() + "," + resultCode.ToString();
 
 
-                    resultCode = SQL.IngresarBitacora("Login No Exitoso", descripcion, user.Username, Ip); //este comando inserta en bitacora el fracaso
+                    resultCode = SQL.IngresarBitacora("Login No Exitoso", descripcion, user.Username, Ip, DateTime.Now); //este comando inserta en bitacora el fracaso
 
                     user.Username = tempUser; 
                     return Page();

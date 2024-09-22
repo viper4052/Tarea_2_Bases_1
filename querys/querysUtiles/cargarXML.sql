@@ -98,15 +98,13 @@ CROSS APPLY
       --AHORA CARGUEMOS LOS Empleados 
 
 
-DECLARE  @empleado TABLE -- a este si es mejor hacerle una tabla variable para 
-(                        -- luego hacer el InnerJoin con Puesto
+DECLARE  @empleado TABLE  
+(                        
 	Id INT IDENTITY (1,1) PRIMARY KEY NOT NULL
 	, Puesto VARCHAR(128) NOT NULL 
 	, Nombre VARCHAR(128) NOT NULL
 	, ValorDocumentoIdentidad INT NOT NULL
 	, FechaContratacion DATE NOT NULL
-	, SaldoVacaciones MONEY NOT NULL DEFAULT 0.0
-	, EsActivo INT NOT NULL DEFAULT 1
 );
 
 INSERT INTO @empleado
@@ -131,24 +129,38 @@ CROSS APPLY
     FROM XmlCol.nodes('Datos/Empleados/empleado') T(z)
 ) result;
 
---AHORA HACER INNER JOIN ENTRE @empleado, dbo.Puesto para dbo.Empleado
-INSERT dbo.Empleado
-(
-	IdPuesto
-	, Nombre
-	, ValorDocumentoIdentidad
-	, FechaContratacion
-	, SaldoVacaciones
-	, EsActivo
-)
-SELECT P.Id
-	   , E.Nombre 
-	   , E.ValorDocumentoIdentidad 
-	   , E.FechaContratacion 
-	   , E.SaldoVacaciones 
-	   , E.EsActivo 
-FROM @empleado E
-INNER JOIN dbo.Puesto P ON E.Puesto = P.Nombre;
+
+
+--AHORA HACER INGRESEMOS LOS EMPLEADOS A LA BD POR MEDIO DE UN SP
+DECLARE @ValorDocId INT;
+DECLARE @OutResultCode INT;
+DECLARE @Puesto VARCHAR(32);
+DECLARE @Nombre VARCHAR (32);
+DECLARE @Date DATE;
+
+--variables que ocuparemos
+DECLARE @count INT = 1;
+DECLARE @maxId INT;
+SELECT @maxId = MAX(Id) FROM @empleado; -- Encontramos el valor máximo de Id
+
+
+WHILE @count <= @maxId
+BEGIN
+    SELECT  @ValorDocId = ValorDocumentoIdentidad 
+		   , @Puesto = Puesto
+		   , @Date = FechaContratacion
+		   , @Nombre = Nombre
+    FROM @empleado
+    WHERE Id = @count;
+
+	EXEC EmpleadosDesdeXML @OutResultCode = @OutResultCode OUTPUT
+						   , @InPuesto = @Puesto
+						   , @InNombre = @Nombre
+						   , @InDocID = @ValorDocId
+						   , @InFechaContratacion = @Date
+
+    SET @count += 1; 
+END;
 
 
 
@@ -157,7 +169,8 @@ INNER JOIN dbo.Puesto P ON E.Puesto = P.Nombre;
 
 DECLARE  @movimientos TABLE -- a este si es mejor hacerle una tabla variable para 
 (                           -- luego hacer el InnerJoin con todos los 3 Fks
-	ValorDocId INT NOT NULL 
+	Id INT PRIMARY KEY  IDENTITY(1,1) NOT NULL
+	, ValorDocId INT NOT NULL 
 	, IdTipoMovimiento VARCHAR(128) NOT NULL
 	, Monto INT NOT NULL
 	, PostByUser VARCHAR(128) NOT NULL
@@ -193,28 +206,43 @@ CROSS APPLY
     FROM XmlCol.nodes('Datos/Movimientos/movimiento') T(z)
 ) result;
 
---AHORA HACER INNER JOIN ENTRE @movimiento, dbo.empleado 
-INSERT dbo.Movimiento
-(
-	IdEmpleado
-	, Monto
-	, NuevoSaldo
-	, IdPostByUser
-	, PostInIP
-	, PostTime
-	, IdTipoMovimiento
-)
-SELECT E.Id -- id del empleado 
-	   , M.Monto
-	   , E.SaldoVacaciones + M.Monto AS NuevoSaldo -- sumar/restar Monto mas saldoVacaciones
-	   , U.Id --Id del usuario 
-	   , M.PostInIP
-	   , M.PostTime
-	   , V.Id --Id del tipo de Mov 
-FROM @movimientos M
-INNER JOIN dbo.Empleado E ON M.ValorDocId = E.ValorDocumentoIdentidad
-INNER JOIN dbo.Usuario U ON M.PostByUser = U.Username
-INNER JOIN dbo.TipoMovimiento V ON M.IdTipoMovimiento = V.Nombre;
 
+--AHORA TOCA LLAMAR AL SP DE INSERTADO
+
+
+--variables que se ocuparan
+DECLARE @Monto MONEY;
+DECLARE @IdTipoMovimiento VARCHAR(128);
+DECLARE @PostByUser VARCHAR(128);
+DECLARE @PostInIP VARCHAR(128);
+DECLARE @PostTime DATETIME;
+SET @OutResultCode = 0;
+--variables de indice
+SET @count = 1;
+SELECT @maxId = MAX(Id) FROM @movimientos; -- Encontramos el valor máximo de Id
+
+
+
+WHILE @count <= @maxId
+BEGIN
+    SELECT @ValorDocId = ValorDocId 
+		   , @Monto = Monto
+		   , @IdTipoMovimiento = IdTipoMovimiento
+		   , @PostByUser = PostByUser
+		   , @PostInIP = PostInIP
+		   , @PostTime = PostTime
+    FROM @movimientos
+    WHERE Id = @count;
+
+	EXEC MovimientosDesdeXML @OutResultCode = @OutResultCode OUTPUT
+							 , @InValorDocId = @ValorDocId
+							 , @InIdTipoMovimiento = @IdTipoMovimiento
+							 , @InMonto = @Monto
+							 , @InPostByUser = @PostByUser
+							 , @InPostInIP = @PostInIP
+							 , @InPostTime = @PostTime
+
+    SET @count += 1; 
+END;
 END
 GO

@@ -18,6 +18,7 @@ si falla da uno de error de BD 50008*/
 --  @InDescripcion: Ingresa la descripcion del evento
 --  @InUsername: da el nombre del usuario con el buscaremos cual su Id
 --  @InPostInIP: Ingresa la IP desde donde ocurrio
+--  @InPostTime: Ingresa la IP desde donde ocurrio
 
 ALTER PROCEDURE [dbo].[IngresarBitacora]
 	@OutResultCode INT OUTPUT 
@@ -25,12 +26,12 @@ ALTER PROCEDURE [dbo].[IngresarBitacora]
 	, @InDescripcion VARCHAR(256)
 	, @InUsername VARCHAR(128)
 	, @InPostInIP VARCHAR(128)
+	, @InPostTime DATETIME 
 AS
 BEGIN
 	SET NOCOUNT ON;
 
 	BEGIN TRY
-	
 		
 		INSERT INTO dbo.BitacoraEvento
 		(
@@ -50,7 +51,7 @@ BEGIN
 				FROM dbo.Usuario
 				WHERE Username = @InUsername)
 			, @InPostInIP 
-			, GETDATE()
+			, @InPostTime
 		)		
 		SET @OutResultCode = 0; 
 	END TRY

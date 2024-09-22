@@ -72,6 +72,7 @@ namespace Tarea_2_BD.Pages.Model
             , String Descripcion
             , String Username
             , String PostInIP
+            , DateTime Date
             )
         {
             Open();
@@ -84,6 +85,7 @@ namespace Tarea_2_BD.Pages.Model
             InParameter("@InDescripcion", Descripcion, SqlDbType.VarChar);
             InParameter("@InUsername", Username,SqlDbType.VarChar);
             InParameter("@InPostInIP", PostInIP,SqlDbType.VarChar);
+            InParameter("@InPostTime", Date, SqlDbType.DateTime);
 
             OutParameter("@OutResultCode", SqlDbType.Int, 0);
 

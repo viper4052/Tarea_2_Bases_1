@@ -40,6 +40,15 @@ BEGIN
 	SELECT @CredODeb = TipoDeAccion FROM dbo.TipoMovimiento
 	WHERE Nombre = @InNombreMovimiento;
 
+	DECLARE @Estado INT
+	SELECT @Estado = EsActivo FROM dbo.Empleado
+	WHERE ValorDocumentoIdentidad = @InDocIdEmpleado;
+
+	IF (@Estado = 0)
+	BEGIN --Si el usuario no está activo se genera un error para activar el catch
+		THROW 50008, 'Error de base de datos',1; --dividir por 0
+	END; 
+
 	IF (@CredODeb = 'Credito')
 	BEGIN
 		UPDATE dbo.Empleado

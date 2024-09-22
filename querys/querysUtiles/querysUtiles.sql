@@ -16,13 +16,13 @@ DBCC CHECKIDENT ('Empleado', RESEED, 0);
 DBCC CHECKIDENT ('Puesto', RESEED, 0);
 DBCC CHECKIDENT ('BitacoraEvento', RESEED, 0);
 
-DELETE FROM dbo.Empleado
 DELETE FROM  dbo.Movimiento
-DELETE FROM  dbo.TipoMovimiento
-DELETE FROM  dbo.Usuario
-DELETE FROM  dbo.Puesto
-DELETE FROM  dbo.TipoEvento
-DELETE FROM  dbo.DBError
-DELETE FROM  dbo.Error
 DELETE FROM  dbo.BitacoraEvento
+DELETE FROM dbo.Empleado
+DELETE FROM  dbo.Puesto
+DELETE FROM  dbo.TipoMovimiento
+DELETE FROM  dbo.TipoEvento
+DELETE FROM  dbo.Usuario
+DELETE FROM  dbo.Error
+DELETE FROM  dbo.DBError
 
