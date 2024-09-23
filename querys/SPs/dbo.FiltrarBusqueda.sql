@@ -1,12 +1,4 @@
-﻿USE [tarea2BD]
-go
-
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
+﻿
 /* Filtra los Empleados
 segun el id o letras que se pongan */
 
@@ -18,15 +10,16 @@ segun el id o letras que se pongan */
 
 
 
-ALTER PROCEDURE [dbo].[FiltrarBusqueda]
+CREATE PROCEDURE [dbo].[FiltrarBusqueda]
 	@OutResulTCode INT OUTPUT
-	, @InLetters VARCHAR(128) 
-	, @InNumbers INT 
+	, @InLetters VARCHAR(128) = NULL
+	, @InNumbers INT = NULL
 
 AS
 BEGIN
 	SET NOCOUNT ON;
 	SET @OutResulTCode = 0;
+	SELECT @OutResulTCode AS OutResulTCode;
 
 	-- letras en los nombres
 	IF @InLetters IS NOT NULL
@@ -57,7 +50,4 @@ BEGIN
 		END 
 
 	SET NOCOUNT OFF;
-	
-
-	SET @OutResulTCode = 0;
 END;
