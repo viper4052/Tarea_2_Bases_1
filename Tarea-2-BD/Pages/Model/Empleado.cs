@@ -1,14 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using System.Data.SqlTypes;
 
 namespace Tarea_2_BD.Pages.Model
 {
 	public class Empleado
 	{
-		[Key]
-		public int Id { get; set; }
+		
+        [DisplayName("Puesto")]
+        [Required]
+        public String Puesto { get; set; }
 
-		[DisplayName("ValorDocumentoIdentidad")]
+        [DisplayName("ValorDocumentoIdentidad")]
 		[Required]
 		public int ValorDocumentoIdentidad { get; set; }
 
@@ -18,15 +21,11 @@ namespace Tarea_2_BD.Pages.Model
 
 		[DisplayName("FechaContratacion")]
 		[Required]
-		public DateOnly FechaContratacion { get; set; }
+		public DateTime FechaContratacion { get; set; }
 
 		[DisplayName("SaldoVacaciones")]
 		[Required]
 		public decimal SaldoVacaciones { get; set; }
-
-		[DisplayName("EsActivo")]
-		[Required]
-		public bool EsActivo { get; set; }
 
 
 	}

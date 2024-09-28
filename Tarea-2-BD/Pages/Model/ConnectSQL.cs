@@ -1,5 +1,7 @@
 ﻿using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
+using System.Reflection.Metadata;
 
 namespace Tarea_2_BD.Pages.Model
 {
@@ -36,10 +38,18 @@ namespace Tarea_2_BD.Pages.Model
 
         public void InParameter<V>(String pName, V pValue, SqlDbType type)  //Este le pone los parametros de entrada a los SPs
         {
-            command.Parameters.Add(new SqlParameter(pName, type)); //le pone el tipo y el nombre en la BD 
-            command.Parameters[pName].Value = pValue;  //esto le asigna el valor 
-        }
-        public void OutParameter(String pName, SqlDbType type, int lenght) //Este le pone los parametros de salida a los SPs
+			command.Parameters.Add(new SqlParameter(pName, type)); //le pone el tipo y el nombre en la BD 
+			command.Parameters[pName].Value = pValue;  //esto le asigna el valor 
+
+		}
+
+		public void InParameter(string pName, SqlDbType type) // metodo sobrecargado, cuando se quiere mandar nulos 
+		{
+			command.Parameters.Add(new SqlParameter(pName ,type));
+            command.Parameters[pName].Value = DBNull.Value;
+		}
+
+		public void OutParameter(String pName, SqlDbType type, int lenght) //Este le pone los parametros de salida a los SPs
         {
             if (type == SqlDbType.VarChar)
             {
