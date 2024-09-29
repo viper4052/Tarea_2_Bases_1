@@ -84,7 +84,9 @@ namespace Tarea_2_BD.Pages.View.List
 
 		public IActionResult OnPostEditarEmpleado()
 		{
+			
 			string busqueda = Request.Form["Nombre"];
+			HttpContext.Session.SetString("Empleado", busqueda);
 			Console.WriteLine(busqueda);
 			Console.WriteLine("editar");
 
@@ -93,6 +95,7 @@ namespace Tarea_2_BD.Pages.View.List
 		public IActionResult OnPostBorrarEmpleado()
 		{
 			string busqueda = Request.Form["Nombre"];
+			HttpContext.Session.SetString("Empleado", busqueda);
 			Console.WriteLine(busqueda);
 			Console.WriteLine("borrar");
 			return Page();
@@ -100,6 +103,7 @@ namespace Tarea_2_BD.Pages.View.List
 		public IActionResult OnPostConsultarEmpleado()
 		{
 			string busqueda = Request.Form["Nombre"];
+			HttpContext.Session.SetString("Empleado", busqueda);
 			Console.WriteLine(busqueda);
 			Console.WriteLine("empleado");
 			return Page();
@@ -107,8 +111,8 @@ namespace Tarea_2_BD.Pages.View.List
 		public IActionResult OnPostConsultarMovimientos()
 		{
 			string busqueda = Request.Form["Nombre"];
+			HttpContext.Session.SetString("Empleado", busqueda);
 			Console.WriteLine(busqueda);
-
 			Console.WriteLine("movimientos");
 			return Page();
 		}
@@ -194,14 +198,14 @@ namespace Tarea_2_BD.Pages.View.List
 
 				//ahora hay que buscar que toca ingresar en bitacora
 
-				string username = HttpContext.Session.GetString("Username");
+				string username = SQL.UltimoUsuario();
 				if (whatFilter == 1)
 				{
-					SQL.IngresarBitacora("Consulta con filtro de cedula", "", username, Ip, DateTime.Now);
+					SQL.IngresarBitacora("Consulta con filtro de cedula", busqueda, username, Ip, DateTime.Now);
 				}
 				else if (whatFilter == 2)
 				{
-					SQL.IngresarBitacora("Consulta con filtro de nombre", "", username, Ip, DateTime.Now);
+					SQL.IngresarBitacora("Consulta con filtro de nombre", busqueda, username, Ip, DateTime.Now);
 				}
 
 

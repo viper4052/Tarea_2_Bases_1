@@ -128,8 +128,26 @@ namespace Tarea_2_BD.Pages.Model
             return (String)command.Parameters["@OutDescripcion"].Value;
         }
 
+		public String UltimoUsuario()//Busca cual fue el ultimo usuario en ingreasar
+		{                            // resuelve requirimiento 8, de mensajes de error 
+			Open();
+			//cargamos SP
+			LoadSP("[dbo].[GetLastUser]");
 
-        public void Open()
+			//Cargamos Parametros 
+			OutParameter("@OutResultCode", SqlDbType.Int, 0);
+			OutParameter("@OutUserName", SqlDbType.VarChar, 128);
+
+			//lo ejecutamos 
+			ExecSP();
+
+			Close();
+
+			return (String)command.Parameters["@OutUserName"].Value;
+		}
+
+
+		public void Open()
         {
             connection.Open();
         }
