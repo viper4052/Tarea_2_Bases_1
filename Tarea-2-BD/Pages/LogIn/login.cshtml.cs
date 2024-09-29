@@ -171,7 +171,8 @@ namespace Tarea_2_BD.Pages.LogIn
                         errorMessage = SQL.BuscarError(resultCode);
                         return Page();
                     }
-                    return RedirectToPage("/View/List/Employee");
+					HttpContext.Session.SetString("Username", user.Username);
+					return RedirectToPage("/View/List/Employee");
                 }
 
                 else
