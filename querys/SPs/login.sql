@@ -14,6 +14,7 @@ GO
 
 --  @outResultCode: codigo de resultado de ejecucion. 0 Corrio sin errores, 
 --  @OutMensajeError: aqui se dejara el mensaje de error (en caso de haberlo)
+--  @OutIntentos: retorna cuantos intentos han habido en los ultimos 30 minutos 
 --  @InUsername: aqui el posible username del usuario con el que estamos trabajando 
 --  @InPassword: aqui el posible password del usuario con el que estamos trabajando 
 --  @InPostInIP: aqui el IP de donde se realizo la solicitud 
@@ -23,6 +24,7 @@ GO
 ALTER PROCEDURE [dbo].[Login]
     @OutResulTCode INT OUTPUT
 	, @OutMensajeError VARCHAR(128) OUTPUT
+	, @OutIntentos INT OUTPUT
 	, @InUsername VARCHAR(128)
 	, @InPassword VARCHAR(128)
 	, @InPostInIP VARCHAR(128)
@@ -36,14 +38,16 @@ BEGIN
 
 
 	SET @OutResulTCode = 0;
+	SET @OutIntentos = 0;
 	SET @OutMensajeError = ' ';
 	DECLARE @TipoDeEvento VARCHAR(128)
 			, @Descripcion VARCHAR(128)
 			, @Intento INT
 			, @IdUser INT 
 			, @IdEvento INT
-			, @UltimaFecha DATETIME; 
-	
+			, @DescripcionTRE VARCHAR(128)--esta variable es para la descripcion en login desabilitado
+			, @IdEventoRE INT--esta variable es para el tipoDeEvento en login desabilitado
+			, @TipoEventoRE VARCHAR(128)--esta variable es para el tipoDeEvento en login desabilitado
 	
 
 		
@@ -101,44 +105,52 @@ BEGIN
 	--cuantos intentos lleva 
 	IF (@OutResulTCode <> 0)
 	BEGIN 
-	
-		SELECT TOP 1 @UltimaFecha = PostTime --solo se seleciona 1 ya que estan indexados DESC
-		FROM dbo.BitacoraEvento
-		WHERE @IdEvento = IdTipoEvento AND @IdUser = IdPostByUser
-		ORDER BY PostTime DESC;
-
-
+		
+		
+		--seleccionaremos el total de intentos 
+		SELECT @Intento = COUNT(*) 
+		FROM dbo.BitacoraEvento --solo se seleciona 1 ya que estan indexados DESC
+		WHERE @IdEvento = IdTipoEvento AND @IdUser = IdPostByUser 
+		AND @InPostTime >= DATEADD(MINUTE, -20, GETDATE());
+		
 		--Ya con esos datos podemos buscar cuantos intentos lleva
-
-		IF @UltimaFecha IS NULL
-        BEGIN
-            SET @Intento = 1;
-        END;
-       
-		ELSE
-		BEGIN
-			
-			--para saber cuantos intentos han habido en los ultimos 20 minutos
-			--veremos el rowcount al seleccionar eventos que hayan ocurrido
-			--en los ultimos 20 minutos
-			SELECT @Intento = COUNT(*) 
-			FROM dbo.BitacoraEvento --solo se seleciona 1 ya que estan indexados DESC
-			WHERE @IdEvento = IdTipoEvento AND @IdUser = IdPostByUser 
-			AND @InPostTime >= DATEADD(MINUTE, -20, GETDATE());
-			
-			SET @Intento += 1 ;--sumamos un intento a los ultimos que han habido 
-			
-			
-		END;
-
+		SET @Intento += 1 --le sumamos uno a la cantidad de intentos actual
+		
 		--ahora formemos la descripcion de error
 		SET @Descripcion = CONVERT(VARCHAR(1), @Intento)+','+CONVERT(VARCHAR(5), @OutResulTCode)
+
+
+		--ahora saquemos cuantos intentos han habido
+		--En los ultimos 30 minutos 
+
+		SELECT Descripcion 
+		FROM dbo.BitacoraEvento --solo se seleciona 1 ya que estan indexados DESC
+		WHERE @IdEvento = IdTipoEvento AND @IdUser = IdPostByUser 
+		AND @InPostTime >= DATEADD(MINUTE, -30, GETDATE());
+
+		SET @OutIntentos = @@ROWCOUNT; 
+
+		IF (@OutIntentos > 3)
+		BEGIN
+			
+			SET @DescripcionTRE = ' '; 
+
+			SET @TipoEventoRE = 'Login deshabilitado';
+			
+			SELECT @IdEventoRE = Id FROM dbo.TipoEvento
+			WHERE @TipoEventoRE = Nombre;  -- el id del tipo de evento
+			SET @OutResulTCode = 50003; 
+
+		END; 
+
+		--ponemos en @outIntentos cuantas filas se seleccionaron 
 		
 	END; 
 
 	--Una vez ya verificado si el usuario existe 
 	--ingresemos a bitacora el resultado 
-		
+	
+	BEGIN TRANSACTION  
 	INSERT INTO dbo.BitacoraEvento
 		(
 			IdTipoEvento
@@ -155,10 +167,41 @@ BEGIN
 			, @InPostInIP 
 			, @InPostTime
 		)
+
+
+	IF (@OutIntentos > 3)
+	BEGIN 
+			
+	INSERT INTO dbo.BitacoraEvento
+		(
+			IdTipoEvento
+			, Descripcion
+			, IdPostByUser
+			, PostInIP
+			, PostTime
+		)
+		VALUES
+		(
+			@IdEventoRE 
+			, @DescripcionTRE  
+			, @IdUser
+			, @InPostInIP 
+			, @InPostTime
+		)
+
+		SELECT @OutMensajeError = Descripcion 
+		FROM dbo.Error
+		WHERE Codigo = @OutResulTCode; 
+
+	END 
+
+	COMMIT TRANSACTION;
 						   
 	END TRY 
 
 	BEGIN CATCH 
+
+	ROLLBACK; 
 	INSERT INTO dbo.DBError VALUES 
 		(
             SUSER_SNAME(),

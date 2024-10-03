@@ -62,7 +62,7 @@ namespace Tarea_2_BD.Pages.LogIn
            
         }
 
-        public string BuscarUsuario(String IP, DateTime date) //devuelve el tipo de error (Si hubo)
+        public int BuscarUsuario(String IP, DateTime date) //devuelve el tipo de error (Si hubo)
 		{
 			SQL.Open();
 			SQL.LoadSP("[dbo].[Login]");
@@ -81,13 +81,15 @@ namespace Tarea_2_BD.Pages.LogIn
 
             intentos = (int)SQL.command.Parameters["@OutIntentos"].Value;
 
-            if (intentos > 3)
+            errorMessage = (string)SQL.command.Parameters["@OutMensajeError"].Value;
+
+			if (intentos > 3)
             {
                 LoginActivo = false; 
                
             }
 
-			return (string)SQL.command.Parameters["@OutMensajeError"].Value;
+			return (int)SQL.command.Parameters["@OutResultCode"].Value;
 		}
 
 
@@ -132,13 +134,12 @@ namespace Tarea_2_BD.Pages.LogIn
             
             using (SQL.connection)
             {
-                string posibleError = BuscarUsuario(Ip, dateNow);
+                int outResultCode= BuscarUsuario(Ip, dateNow);
 
 
-                if (posibleError != " " )
+                if (outResultCode != 0 )
                 {
-                    errorMessage = posibleError;
-
+                    
                     return Page();
 				}
                 else
