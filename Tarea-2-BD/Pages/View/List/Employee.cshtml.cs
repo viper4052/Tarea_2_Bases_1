@@ -22,57 +22,26 @@ namespace Tarea_2_BD.Pages.View.List
 
 
 
-        public void OnGet(string username)
-        {
-						
+		public void OnGet(string username)
+		{
+
+			Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+			string user = (string)HttpContext.Session.GetString("Usuario");
+			Console.WriteLine(user);
+
+			DateTime dateNow = DateTime.Now;
+
+			string busqueda = " ";
+
 			using (SQL.connection)
             {
 
                 SQL.Open();
 
-                SQL.LoadSP("[dbo].[ListarEmpleados]");
-
-                SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
+				ListarEmpleados(busqueda, user, Ip, dateNow);
 
 
-                using (SqlDataReader dr = SQL.command.ExecuteReader())
-                {
-
-                    if (dr.Read()) //primero verificamos si el resultcode es positivo
-                    {
-                        int resultCode = dr.GetInt32(0);
-
-                        if (resultCode == 0)
-                        {
-                            Console.WriteLine("Traida de datos exitosa");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Error al llamar al SP");
-                            errorMessage = SQL.BuscarError(resultCode);
-                            return;
-                        }
-
-                    }
-
-                    dr.NextResult(); //ya que leimos el outResultCode, leeremos los datos del dataser
-
-                    while (dr.Read())
-                    {
-                        Empleado empleado = new Empleado();
-                        empleado.Puesto = dr.GetString(0);
-                        empleado.Nombre = dr.GetString(1);
-                        empleado.ValorDocumentoIdentidad = dr.GetInt32(2);
-                        empleado.FechaContratacion = dr.GetDateTime(3);
-                        empleado.SaldoVacaciones = (decimal)dr.GetSqlMoney(4);
-
-                        listaEmpleados.Add(empleado);
-
-
-                    }
-                }
-
-                SQL.Close();
+				SQL.Close();
             }
 
         }
@@ -118,99 +87,99 @@ namespace Tarea_2_BD.Pages.View.List
 		}
 
 
+		public int ListarEmpleados(string busqueda, string username, string ip,DateTime date)
+		{
+			SQL.LoadSP("[dbo].[ListarEmpleados]");
+
+			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
+			SQL.OutParameter("@OutMensajeError", SqlDbType.VarChar, 128);
+
+			SQL.InParameter("@InUsername", username, SqlDbType.VarChar);
+			SQL.InParameter("@InIp", ip, SqlDbType.VarChar);
+			SQL.InParameter("@InPostTime", date, SqlDbType.DateTime);
+
+
+			if (string.IsNullOrWhiteSpace(busqueda))
+			{
+				SQL.InParameter("@InLetters", SqlDbType.VarChar); //se mandan los parametros nulos 
+				SQL.InParameter("@InNumbers", SqlDbType.Int);
+			}
+			else
+			{
+				try //aqui verificamos si tratamos de buscar por valor doc id 
+				{
+					int number = int.Parse(busqueda);
+					SQL.InParameter("@InLetters", SqlDbType.VarChar); //se mandan los parametros nulos 
+					SQL.InParameter("@InNumbers", number, SqlDbType.Int);
+				}
+				catch //estamos buscando por nombre 
+				{
+					SQL.InParameter("@InLetters", busqueda, SqlDbType.VarChar); //se mandan los parametros nulos 
+					SQL.InParameter("@InNumbers", SqlDbType.Int);
+				}
+
+			}
+
+			//ya habiendo cargado los posibles parametros entonces podemos llamar al SP
+			using (SqlDataReader dr = SQL.command.ExecuteReader())
+			{
+				int resultCode = 0;
+
+				if (dr.Read()) //primero verificamos si el resultcode es positivo
+				{
+					resultCode = dr.GetInt32(0);
+
+					if (resultCode == 0)
+					{
+						Console.WriteLine("Traida de datos exitosa");
+					}
+					else
+					{
+						dr.NextResult();
+						errorMessage = dr.GetString(0);
+						Console.WriteLine("Error al llamar al SP");
+						return resultCode;
+					}
+
+				}
+				
+				dr.NextResult(); //ya que leimos el outResultCode, leeremos los datos del dataser
+				listaEmpleados = new List<Empleado>();
+				while (dr.Read())
+				{
+					Empleado empleado = new Empleado();
+					empleado.Puesto = dr.GetString(0);
+					empleado.Nombre = dr.GetString(1);
+					empleado.ValorDocumentoIdentidad = dr.GetInt32(2);
+					empleado.FechaContratacion = dr.GetDateTime(3);
+					empleado.SaldoVacaciones = (decimal)dr.GetSqlMoney(4);
+
+					listaEmpleados.Add(empleado);
+				}
+
+				return resultCode;
+			}
+		}
+
 
 		public void OnPostFiltrarEmpleados()
         {
 			Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+			DateTime dateNow = DateTime.Now;
+
 			string busqueda = Request.Form["Filtrar"];
+			string user = (string)HttpContext.Session.GetString("Usuario");
 
 
-            Console.WriteLine(busqueda);
 
 			using (SQL.connection)
 			{
 				SQL.Open();
-				SQL.LoadSP("[dbo].[FiltrarBusqueda]");
+				
 
-				SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
+				ListarEmpleados(busqueda, user, Ip, dateNow);
 
-				if (string.IsNullOrWhiteSpace(busqueda))
-				{
-					SQL.InParameter("@InLetters", SqlDbType.VarChar); //se mandan los parametros nulos 
-					SQL.InParameter("@InNumbers", SqlDbType.Int);
-					whatFilter = 0;
-				}
-				else
-				{
-					try //aqui verificamos si tratamos de buscar por valor doc id 
-					{
-						int number = int.Parse(busqueda);
-						SQL.InParameter("@InLetters", SqlDbType.VarChar); //se mandan los parametros nulos 
-						SQL.InParameter("@InNumbers", number, SqlDbType.Int);
-						whatFilter = 1;
-
-					}
-					catch //estamos buscando por nombre 
-					{
-						SQL.InParameter("@InLetters", busqueda, SqlDbType.VarChar); //se mandan los parametros nulos 
-						SQL.InParameter("@InNumbers", SqlDbType.Int);
-						whatFilter = 2;
-					}
-
-				}
-
-				//ya habiendo cargado los posibles parametros entonces podemos llamar al SP
-				using (SqlDataReader dr = SQL.command.ExecuteReader())
-				{
-
-					if (dr.Read()) //primero verificamos si el resultcode es positivo
-					{
-						int resultCode = dr.GetInt32(0);
-
-						if (resultCode == 0)
-						{
-							Console.WriteLine("Traida de datos exitosa");
-						}
-						else
-						{
-							errorMessage = SQL.BuscarError(resultCode);
-							Console.WriteLine("Error al llamar al SP");
-							return;
-						}
-
-					}
-
-					dr.NextResult(); //ya que leimos el outResultCode, leeremos los datos del dataser
-					listaEmpleados = new List<Empleado>();
-					while (dr.Read())
-					{
-						Empleado empleado = new Empleado();
-						empleado.Puesto = dr.GetString(0);
-						empleado.Nombre = dr.GetString(1);
-						empleado.ValorDocumentoIdentidad = dr.GetInt32(2);
-						empleado.FechaContratacion = dr.GetDateTime(3);
-						empleado.SaldoVacaciones = (decimal)dr.GetSqlMoney(4);
-
-						listaEmpleados.Add(empleado);
-					}
-				}
 				SQL.Close();
-
-				//ahora hay que buscar que toca ingresar en bitacora
-
-				string username = SQL.UltimoUsuario();
-				if (whatFilter == 1)
-				{
-					SQL.IngresarBitacora("Consulta con filtro de cedula", busqueda, username, Ip, DateTime.Now);
-				}
-				else if (whatFilter == 2)
-				{
-					SQL.IngresarBitacora("Consulta con filtro de nombre", busqueda, username, Ip, DateTime.Now);
-				}
-
-
-
-
 			}
 
 

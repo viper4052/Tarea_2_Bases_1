@@ -14,7 +14,7 @@ GO
 
 --  @outResultCode: codigo de resultado de ejecucion. 0 Corrio sin errores, 
 --  @OutMensajeError: aqui se dejara el mensaje de error (en caso de haberlo)
---  @OutIntentos: retorna cuantos intentos han habido en los ultimos 30 minutos 
+--  @OutIntentos: retorna si se cancelo el login 
 --  @InUsername: aqui el posible username del usuario con el que estamos trabajando 
 --  @InPassword: aqui el posible password del usuario con el que estamos trabajando 
 --  @InPostInIP: aqui el IP de donde se realizo la solicitud 
@@ -38,7 +38,7 @@ BEGIN
 
 
 	SET @OutResulTCode = 0;
-	SET @OutIntentos = 0;
+	SET @OutIntentos = 1;
 	SET @OutMensajeError = ' ';
 	DECLARE @TipoDeEvento VARCHAR(128)
 			, @Descripcion VARCHAR(128)
@@ -133,6 +133,8 @@ BEGIN
 		IF (@OutIntentos > 3)
 		BEGIN
 			
+			SET @OutIntentos = 0; -- SI se bloquea el login se manda 0
+
 			SET @DescripcionTRE = ' '; 
 
 			SET @TipoEventoRE = 'Login deshabilitado';
@@ -141,7 +143,11 @@ BEGIN
 			WHERE @TipoEventoRE = Nombre;  -- el id del tipo de evento
 			SET @OutResulTCode = 50003; 
 
-		END; 
+		END;
+		ELSE 
+		BEGIN 
+			SET @OutIntentos = 1; -- SI se no bloquea el login se manda 1
+		END;
 
 		--ponemos en @outIntentos cuantas filas se seleccionaron 
 		
@@ -168,8 +174,8 @@ BEGIN
 			, @InPostTime
 		)
 
-
-	IF (@OutIntentos > 3)
+	
+	IF (@OutIntentos = 0)
 	BEGIN 
 			
 	INSERT INTO dbo.BitacoraEvento
@@ -192,6 +198,7 @@ BEGIN
 		SELECT @OutMensajeError = Descripcion 
 		FROM dbo.Error
 		WHERE Codigo = @OutResulTCode; 
+				
 
 	END 
 

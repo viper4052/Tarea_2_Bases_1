@@ -83,7 +83,7 @@ namespace Tarea_2_BD.Pages.LogIn
 
             errorMessage = (string)SQL.command.Parameters["@OutMensajeError"].Value;
 
-			if (intentos > 3)
+			if (intentos == 0)
             {
                 LoginActivo = false; 
                
@@ -143,7 +143,9 @@ namespace Tarea_2_BD.Pages.LogIn
                     return Page();
 				}
                 else
-                {                    
+                {
+					HttpContext.Session.SetString("Usuario", user.Username);
+
 					return RedirectToPage("/View/List/Employee");
 				}
 
