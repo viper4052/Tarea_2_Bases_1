@@ -4,6 +4,7 @@ using Tarea_2_BD.Pages.Model;
 using System.Data.SqlClient;
 using System.Data;
 using System.Net;
+using System.Runtime.InteropServices;
 
 namespace Tarea_2_BD.Pages.LogIn
 {
@@ -16,14 +17,13 @@ namespace Tarea_2_BD.Pages.LogIn
         public ConnectSQL SQL = new ConnectSQL();
         public bool LoginActivo = true;
         public String Ip;
+        public int intentos; 
         
         
         public void OnGet()
         {
-            
-            
-
-
+          
+         
             int tiempoFuera = GetTiempoBloqueado();
             
             if(tiempoFuera < 0)
@@ -38,8 +38,6 @@ namespace Tarea_2_BD.Pages.LogIn
             
             
         }
-
-
 
         public int GetTiempoBloqueado()
         {
@@ -63,66 +61,47 @@ namespace Tarea_2_BD.Pages.LogIn
             }
            
         }
-        public int BuscarUsuario()
-        {
-            SQL.Open();
-            SQL.LoadSP("[dbo].[BuscarUsuario]");
 
-            SQL.InParameter("@InUsername", user.Username, SqlDbType.VarChar);
-            SQL.InParameter("@InPassword", user.Pass, SqlDbType.VarChar);
+        public string BuscarUsuario(String IP, DateTime date) //devuelve el tipo de error (Si hubo)
+		{
+			SQL.Open();
+			SQL.LoadSP("[dbo].[Login]");
 
-            SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
+			SQL.InParameter("@InUsername", user.Username, SqlDbType.VarChar);
+			SQL.InParameter("@InPassword", user.Pass, SqlDbType.VarChar);
+			SQL.InParameter("@InPostInIP", IP, SqlDbType.VarChar);
+			SQL.InParameter("@InPostTime", date, SqlDbType.DateTime);
 
-            SQL.ExecSP();
-            SQL.Close();
-            
-            return (int)SQL.command.Parameters["@OutResultCode"].Value; 
-        }
+			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
+			SQL.OutParameter("@OutIntentos", SqlDbType.Int, 0);
+			SQL.OutParameter("@OutMensajeError", SqlDbType.VarChar, 128);
 
-        public int GetIntentos(String pTipoEvento, String pUserName)
-        {
-            SQL.Open();
-            SQL.LoadSP("[dbo].[GetIntentos]");
+			SQL.ExecSP();
+			SQL.Close();
 
-            SQL.InParameter("@InUsername", pUserName, SqlDbType.VarChar);
-            SQL.InParameter("@InTipoEvento", pTipoEvento, SqlDbType.VarChar);
+            intentos = (int)SQL.command.Parameters["@OutIntentos"].Value;
 
-            SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
-            SQL.OutParameter("@OutIntentos", SqlDbType.Int, 0);
-
-            SQL.ExecSP();
-
-            int codeResult = (int)SQL.command.Parameters["@OutResultCode"].Value;
-            int tries = (int)SQL.command.Parameters["@OutIntentos"].Value;
-
-            SQL.Close();
-
-
-           
-            if (codeResult != 0)
+            if (intentos > 3)
             {
-                errorMessage = SQL.BuscarError(codeResult);
-
-                if (codeResult == 50003)
-                {
-                    LoginActivo = false;
-                    SQL.IngresarBitacora("Login deshabilitado", "", user.Username, Ip, DateTime.Now);
-                }
+                LoginActivo = false; 
+               
             }
-            
- 
-            return tries;
 
-        }
+			return (string)SQL.command.Parameters["@OutMensajeError"].Value;
+		}
 
-        
-        public ActionResult OnPost()
+
+
+		public ActionResult OnPost()
         {
             Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+			
+            DateTime dateNow = DateTime.Now;
 
-            String Username = Request.Form["Nombre"];
+			String Username = Request.Form["Nombre"];
+			
 
-            bool esSoloAlfabeticoYGuionBajo = Username.All(c => char.IsLetter(c) || c == '_' || c == ' ');
+			bool esSoloAlfabeticoYGuionBajo = Username.All(c => char.IsLetter(c) || c == '_' || c == ' ');
 
             String Password = Request.Form["Contraseña"];
 
@@ -151,56 +130,25 @@ namespace Tarea_2_BD.Pages.LogIn
             //Ahora revisemos si el usuario esta en la BD
 
             
-
             using (SQL.connection)
             {
+                string posibleError = BuscarUsuario(Ip, dateNow);
 
-                
-                int resultCode = BuscarUsuario();
-               
 
-                if (resultCode == 0) //login exitoso
+                if (posibleError != " " )
                 {
-                    
-                    resultCode = SQL.IngresarBitacora("Login Exitoso","",user.Username,Ip, DateTime.Now); //este comando inserta en bitacora el evento exitoso
+                    errorMessage = posibleError;
 
-                    
-
-                    if (resultCode != 0)
-                    {
-                        errorMessage = SQL.BuscarError(resultCode);
-                        return Page();
-                    }
-					return RedirectToPage("/View/List/Employee");
-                }
-
-                else
-                {
-                    String tempUser = user.Username;
-                    if (50001 ==  resultCode)
-                    {
-                        
-                        user.Username = "LOGINFALLIDO"; //esto es para que cuando se usa un usuario que no es parte de la base de datos se 
-                    }  //                              se le asigne ese user 
-
-                    Console.WriteLine(resultCode);
-                    Console.WriteLine(user.Username);
-
-                    errorMessage = SQL.BuscarError(resultCode);
-
-                    int intentos = GetIntentos("Login No Exitoso", user.Username);
-
-                    String descripcion = intentos.ToString() + "," + resultCode.ToString();
-
-
-                    resultCode = SQL.IngresarBitacora("Login No Exitoso", descripcion, user.Username, Ip, DateTime.Now); //este comando inserta en bitacora el fracaso
-
-                    user.Username = tempUser; 
                     return Page();
-                    
+				}
+                else
+                {                    
+					return RedirectToPage("/View/List/Employee");
+				}
 
-                }
-                       
+
+
+
             }
           
         }

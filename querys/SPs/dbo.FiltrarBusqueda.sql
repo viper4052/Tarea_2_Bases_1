@@ -36,6 +36,7 @@ BEGIN
 			, Nombre VARCHAR(128) NOT NULL
 			, ValorDocumentoIdentidad INT NOT NULL
 			, FechaContratacion DATE NOT NULL
+			, SaldoVacaciones MONEY NOT NULL 
 		);
 		INSERT @empleado 
 		(
@@ -43,11 +44,13 @@ BEGIN
 			, Nombre 
 			, ValorDocumentoIdentidad 
 			, FechaContratacion 
+			, SaldoVacaciones
 		)
         SELECT P.Nombre 
 			   , E.Nombre
 			   , E.ValorDocumentoIdentidad
 			   , E.FechaContratacion
+			   , E.SaldoVacaciones
         FROM dbo.Empleado E 
 		INNER JOIN dbo.Puesto P ON E.IdPuesto = P.Id
 		WHERE E.EsActivo <> 0;
@@ -61,6 +64,7 @@ BEGIN
 				, E.Nombre
 				, E.ValorDocumentoIdentidad
 				, E.FechaContratacion
+				, E.SaldoVacaciones
 			FROM @empleado E 
 			WHERE E.Nombre LIKE '%' + @InLetters + '%'
 			ORDER BY E.Nombre ASC; 
@@ -74,6 +78,7 @@ BEGIN
 				, E.Nombre
 				, E.ValorDocumentoIdentidad
 				, E.FechaContratacion
+				, E.SaldoVacaciones
 				FROM @empleado E 
 				WHERE CAST(E.ValorDocumentoIdentidad AS VARCHAR(128)) LIKE  '%' + CAST(@InNumbers AS VARCHAR(128)) + '%'
 				ORDER BY E.Nombre ASC; 
@@ -85,6 +90,7 @@ BEGIN
 				, E.Nombre
 				, E.ValorDocumentoIdentidad
 				, E.FechaContratacion
+				, E.SaldoVacaciones
 				FROM @empleado E 
 				ORDER BY E.Nombre ASC; 
 			END
