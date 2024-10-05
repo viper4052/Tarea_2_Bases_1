@@ -208,7 +208,10 @@ BEGIN
 
 	BEGIN CATCH 
 
+	IF @@TRANCOUNT > 0 
+	BEGIN 
 	ROLLBACK; 
+	END; 
 	INSERT INTO dbo.DBError VALUES 
 		(
             SUSER_SNAME(),
