@@ -46,7 +46,7 @@ namespace Tarea_2_BD.Pages.View.List
 			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
 			SQL.OutParameter("@OutValorDocumentoidentidad", SqlDbType.Int, 0);
 			SQL.OutParameter("@OutSaldo", SqlDbType.Money, 0);
-			SQL.OutParameter("@OutErrorMessage", SqlDbType.Money, 0);
+			SQL.OutParameter("@OutErrorMessage", SqlDbType.VarChar, 32);
 
 			SQL.InParameter("@InEmpleado", nombreEmpleado, SqlDbType.VarChar);
 
@@ -90,8 +90,10 @@ namespace Tarea_2_BD.Pages.View.List
 					Console.WriteLine(empleadoActual.ValorDocumentoIdentidad);
 				}
 
-				
 
+				string saldo = empleadoActual.SaldoVacaciones.ToString();
+				HttpContext.Session.SetString("Saldo", saldo);
+				HttpContext.Session.SetInt32("DocId", empleadoActual.ValorDocumentoIdentidad);
 
 				dr.NextResult();
 

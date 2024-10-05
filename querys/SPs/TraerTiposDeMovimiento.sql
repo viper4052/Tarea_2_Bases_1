@@ -19,7 +19,7 @@ y los entrega, junto a la lista de todos sus movimientos*/
 --  @OutSaldo : da el saldo actual del empleado
 --  @OutErrorMessage : da el mensaje de error en caso de haber ocurrido un error 
 
-ALTER PROCEDURE [dbo].[ListarMovimientos]
+CREATE PROCEDURE [dbo].[TraerTiposDeMovimiento]
 	@OutResultCode INT OUTPUT 
 	, @OutValorDocumentoidentidad INT OUTPUT
 	, @OutSaldo MONEY OUTPUT
@@ -47,49 +47,8 @@ BEGIN
 		SELECT @OutValorDocumentoidentidad AS ValorDocumentoidentidad;
 		--ahora listemos los movimientos
 
-		DECLARE  @movimiento TABLE
-		(
-			Fecha DATE NOT NULL
-			, Estampa TIME NOT NULL
-			, NombreMovimiento VARCHAR(32) NOT NULL
-			, Monto MONEY NOT NULL
-			, NuevoSaldo MONEY NOT NULL
-			, Username VARCHAR(32) NOT NULL
-			, IpAdress VARCHAR(32) NOT NULL
-		)
-
-		INSERT INTO @movimiento
-		(
-			Fecha
-			, Estampa
-			, NombreMovimiento
-			, Monto
-			, NuevoSaldo
-			, Username
-			, IpAdress
-		)
-		SELECT (CAST(M.PostTime as DATE)) --sacamos solo la fecha
-			   , (CAST(M.PostTime as TIME)) --sacamos solo la estampa de tiempo
-			   , TM.Nombre
-			   , M.Monto
-			   , M.NuevoSaldo
-			   , U.Username
-			   , M.PostInIP
-		FROM dbo. Movimiento M 
-		INNER JOIN dbo.TipoMovimiento TM ON M.IdTipoMovimiento = TM.Id 
-		INNER JOIN dbo.Usuario U ON M.IdPostByUser = U.Id 
-		WHERE M.IdEmpleado = @IdEmpleado; 
-		
-		SELECT Fecha
-			, Estampa
-			, NombreMovimiento
-			, Monto
-			, NuevoSaldo
-			, Username
-			, IpAdress
-		FROM @movimiento AS movimientos
-		ORDER BY Fecha DESC; 
-		
+		SELECT TM.Nombre, TM.TipoDeAccion
+		FROM dbo.TipoMovimiento TM;		
 		
 	END TRY
 	BEGIN CATCH
