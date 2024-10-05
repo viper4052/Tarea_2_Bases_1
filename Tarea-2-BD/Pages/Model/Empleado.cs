@@ -8,7 +8,6 @@ namespace Tarea_2_BD.Pages.Model
 	{
 		
         [DisplayName("Puesto")]
-        [Required]
         public String Puesto { get; set; }
 
         [DisplayName("ValorDocumentoIdentidad")]
@@ -20,7 +19,6 @@ namespace Tarea_2_BD.Pages.Model
 		public String Nombre { get; set; }
 
 		[DisplayName("FechaContratacion")]
-		[Required]
 		public DateTime FechaContratacion { get; set; }
 
 		[DisplayName("SaldoVacaciones")]

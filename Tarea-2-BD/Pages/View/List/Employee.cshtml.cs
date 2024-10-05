@@ -83,7 +83,7 @@ namespace Tarea_2_BD.Pages.View.List
 			HttpContext.Session.SetString("Empleado", busqueda);
 			Console.WriteLine(busqueda);
 			Console.WriteLine("movimientos");
-			return Page();
+			return RedirectToPage("/View/List/Movimiento");
 		}
 
 

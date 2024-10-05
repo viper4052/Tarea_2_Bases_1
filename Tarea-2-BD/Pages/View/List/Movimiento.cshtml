@@ -1,0 +1,65 @@
+﻿@page
+@model Tarea_2_BD.Pages.View.List.MovimientoModel
+@{
+}
+
+
+<h3>Empleado</h3>
+<dl>
+	<dt>Nombre:</dt>
+	<dd>@Model.empleadoActual.Nombre</dd>
+
+	<dt>Documento de Identidad:</dt>
+	<dd>@Model.empleadoActual.ValorDocumentoIdentidad</dd>
+
+	<dt>Saldo de Vacaciones:</dt>
+	<dd>@Model.empleadoActual.SaldoVacaciones</dd>
+</dl>
+
+
+
+
+
+
+<br />
+<table class="table">
+	<thead>
+		<tr>
+			<th>Fecha</th>
+			<th>Estampa de Tiempo</th>
+			<th>Tipo de Movimiento</th>
+			<th>Monto</th>
+			<th>Nuevo Saldo</th>
+			<th>Username</th>
+			<th>Ip</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model.listaMovimientos)
+		{
+			<tr>
+				<td>@item.Fecha</td>
+				<td>@item.Estampa</td>
+				<td>@item.tipoMovimiento</td>
+				<td>@item.Monto</td>
+				<td>@item.NuevoSaldo</td>
+				<td>@item.NombreUsuario</td>
+				<td>@item.ipAdress</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+
+
+<div class="col-sm-3 d-grid">
+	<a class="btn btn-primary" href="/View/List/Employee">Regresar</a>
+
+</div>
+
+
+
+
+
+
+	
