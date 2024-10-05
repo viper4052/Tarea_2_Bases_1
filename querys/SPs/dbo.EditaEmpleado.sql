@@ -36,13 +36,12 @@ ALTER PROCEDURE [dbo].[EditaEmpleado]
 		SET NOCOUNT ON;
 		BEGIN TRY
 			SET @OutResulTCode = 0;
-			SET @OutIntentos = 1;
 			SET @OutMensajeError = ' ';
 
 			SELECT  Empleado.Nombre
 					, Empleado.IdPuesto
 					, Empleado.ValorDocumentoIdentidad
-			FROM [dbo].[Empleado] E
+			FROM [dbo].[Empleado] Empleado
 			WHERE Empleado.Nombre LIKE @InRefName
 
 			-- Variables de insercion a bitacora
