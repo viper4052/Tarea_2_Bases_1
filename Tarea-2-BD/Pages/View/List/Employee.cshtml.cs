@@ -24,8 +24,8 @@ namespace Tarea_2_BD.Pages.View.List
 
 		public void OnGet(string username)
 		{
-
-			Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+            ViewData["ShowLogoutButton"] = true;
+            Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
 			string user = (string)HttpContext.Session.GetString("Usuario");
 			Console.WriteLine(user);
 

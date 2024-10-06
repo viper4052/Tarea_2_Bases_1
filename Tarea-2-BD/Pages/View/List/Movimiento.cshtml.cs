@@ -17,9 +17,10 @@ namespace Tarea_2_BD.Pages.View.List
 		public string errorMessage = "";
 		public void OnGet()
         {
+            ViewData["ShowLogoutButton"] = true;
 
             //Primero obtenemos el nombre del empleado 
-			string empleado = (string)HttpContext.Session.GetString("Empleado");
+            string empleado = (string)HttpContext.Session.GetString("Empleado");
 
 			empleadoActual = new Empleado(); 
 			empleadoActual.Nombre = empleado ;

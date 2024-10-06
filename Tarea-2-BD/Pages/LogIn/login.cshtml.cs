@@ -23,8 +23,8 @@ namespace Tarea_2_BD.Pages.LogIn
         
         public void OnGet()
         {
-          
-         
+
+            ViewData["ShowLogoutButton"] = false;
             int tiempoFuera = GetTiempoBloqueado();
 
             if (tiempoFuera == 50008) //error de BD
@@ -108,6 +108,7 @@ namespace Tarea_2_BD.Pages.LogIn
 
 		public ActionResult OnPost()
         {
+            ViewData["ShowLogoutButton"] = false;
             Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
 			
             DateTime dateNow = DateTime.Now;

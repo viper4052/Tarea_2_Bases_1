@@ -19,9 +19,9 @@ namespace Tarea_2_BD.Pages.View.Insert
 
 		public void OnGet()
         {
+            ViewData["ShowLogoutButton"] = true;
 
-
-			string empleado = (string)HttpContext.Session.GetString("Empleado");
+            string empleado = (string)HttpContext.Session.GetString("Empleado");
 
 			using (SQL.connection)
 			{

@@ -18,6 +18,7 @@ namespace Tarea_2_BD.Pages.View.Insert
         
         public void OnGet()
         {
+            ViewData["ShowLogoutButton"] = true;
             using (SQL.connection)
             {
                 traerPuestos();
