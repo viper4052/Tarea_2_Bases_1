@@ -24,6 +24,8 @@ BEGIN
 	SET NOCOUNT ON;
 
 	BEGIN TRY 
+	
+	SET @OutResultCode = 0;
 
 	DECLARE @LastBlock DATETIME
 	SELECT TOP 1 @LastBlock = PostTime 
@@ -34,7 +36,6 @@ BEGIN
 	SELECT @OutTime = DATEDIFF(MINUTE, @LastBlock, GETDATE());
 	select @OutTime as oout;
 
-	SET @OutResultCode = 0;
 
 	END TRY 
 

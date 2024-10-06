@@ -36,12 +36,14 @@ namespace Tarea_2_BD.Pages.View.List
 			using (SQL.connection)
             {
 
-                SQL.Open();
 
-				ListarEmpleados(busqueda, user, Ip, dateNow);
+				int resultCode = ListarEmpleados(busqueda, user, Ip, dateNow);
 
+				if (resultCode != 0)
+				{
+					errorMessage = SQL.BuscarError(resultCode);
+				}
 
-				SQL.Close();
             }
 
         }
@@ -89,10 +91,10 @@ namespace Tarea_2_BD.Pages.View.List
 
 		public int ListarEmpleados(string busqueda, string username, string ip,DateTime date)
 		{
+			SQL.Open();
 			SQL.LoadSP("[dbo].[ListarEmpleados]");
 
 			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
-			SQL.OutParameter("@OutMensajeError", SqlDbType.VarChar, 128);
 
 			SQL.InParameter("@InUsername", username, SqlDbType.VarChar);
 			SQL.InParameter("@InIp", ip, SqlDbType.VarChar);
@@ -135,9 +137,7 @@ namespace Tarea_2_BD.Pages.View.List
 					}
 					else
 					{
-						dr.NextResult();
-						errorMessage = dr.GetString(0);
-						Console.WriteLine("Error al llamar al SP");
+						SQL.Close();
 						return resultCode;
 					}
 
@@ -157,6 +157,7 @@ namespace Tarea_2_BD.Pages.View.List
 					listaEmpleados.Add(empleado);
 				}
 
+				SQL.Close();
 				return resultCode;
 			}
 		}
@@ -174,12 +175,16 @@ namespace Tarea_2_BD.Pages.View.List
 
 			using (SQL.connection)
 			{
-				SQL.Open();
+				
 				
 
-				ListarEmpleados(busqueda, user, Ip, dateNow);
+				int resultCode = ListarEmpleados(busqueda, user, Ip, dateNow);
 
-				SQL.Close();
+                if (resultCode != 0)
+                {
+                    errorMessage = SQL.BuscarError(resultCode);
+                }
+
 			}
 
 

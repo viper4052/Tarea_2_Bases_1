@@ -25,24 +25,28 @@ namespace Tarea_2_BD.Pages.View.Insert
 
 			using (SQL.connection)
 			{
-				SQL.Open();
+				
 
 				int resultCode = TraerTiposDeMovimiento(empleado); //trae los tipos de movimiento y los datos del empleado 
 
+				if (resultCode != 0)
+				{
+					errorMessage = SQL.BuscarError(resultCode);
+				}
 
-				SQL.Close();
+
 			}
 		}
 
 
 		public int TraerTiposDeMovimiento(string empleado)
 		{
+			SQL.Open();
 			SQL.LoadSP("[dbo].[TraerTiposDeMovimiento]");
 
 			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
 			SQL.OutParameter("@OutValorDocumentoidentidad", SqlDbType.Int, 0);
 			SQL.OutParameter("@OutSaldo", SqlDbType.Money, 0);
-			SQL.OutParameter("@OutErrorMessage", SqlDbType.Money, 0);
 
 			SQL.InParameter("@InEmpleado", empleado, SqlDbType.VarChar);
 
@@ -61,8 +65,7 @@ namespace Tarea_2_BD.Pages.View.Insert
 					}
 					else
 					{
-						dr.NextResult();
-						errorMessage = dr.GetString(0);
+						SQL.Close();
 						Console.WriteLine("Error al llamar al SP");
 						return resultCode;
 					}
@@ -107,7 +110,7 @@ namespace Tarea_2_BD.Pages.View.Insert
 
 					listaTipoMovimientos.Add(tipo);
 				}
-
+				SQL.Close();
 				return resultCode;
 			}
 
@@ -117,9 +120,9 @@ namespace Tarea_2_BD.Pages.View.Insert
 
 		public int InsertarMovimiento(string empleado, string movimiento, decimal monto)
 		{
+			SQL.Open();
 			SQL.LoadSP("[dbo].[InsertarMovimiento]");
 			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
-			SQL.OutParameter("@OutError", SqlDbType.VarChar, 128);
 
 			SQL.InParameter("@InEmpleado", empleado, SqlDbType.VarChar);
 			SQL.InParameter("@InMonto", monto, SqlDbType.Money);
@@ -133,9 +136,10 @@ namespace Tarea_2_BD.Pages.View.Insert
 			int resultCode = (int)SQL.command.Parameters["@OutResultCode"].Value;
 			if (resultCode != 0)
 			{
-				errorMessage = (string)SQL.command.Parameters["@OutError"].Value;
+				SQL.Close();
 				return resultCode;
 			}
+			SQL.Close();
 			return resultCode;
 
 		}
@@ -151,10 +155,15 @@ namespace Tarea_2_BD.Pages.View.Insert
 
 			using (SQL.connection)
 			{
-				SQL.Open();
 				string empleado = (string)HttpContext.Session.GetString("Empleado");
 				resultCode = TraerTiposDeMovimiento(empleado); //trae los tipos de movimiento y los datos del empleado 
 
+
+				if (resultCode != 0)
+				{
+					errorMessage = SQL.BuscarError(resultCode);
+					return Page();
+				}
 
 				
 
@@ -193,16 +202,17 @@ namespace Tarea_2_BD.Pages.View.Insert
 				Console.WriteLine(movimiento);
 
 
-				 resultCode = InsertarMovimiento(empleado, movimiento, montoReal); //trae los tipos de movimiento y los datos del empleado 
-
-				SQL.Close();
+				resultCode = InsertarMovimiento(empleado, movimiento, montoReal); //trae los tipos de movimiento y los datos del empleado 
+				
+				if (resultCode != 0)
+				{
+					errorMessage = SQL.BuscarError(resultCode);
+					return Page();
+				}
 
 			}
 
-			if (resultCode != 0)
-			{
-				return Page();
-			}
+			
 				
 			return RedirectToPage("/View/List/Movimiento");
 		}

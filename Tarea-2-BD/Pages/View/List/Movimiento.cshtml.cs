@@ -28,12 +28,17 @@ namespace Tarea_2_BD.Pages.View.List
 
 			using (SQL.connection)
 			{
-				SQL.Open();
+				
 
 				int resultCode = ListarMovimientos(empleado);
 
+				if (resultCode != 0)
+				{
+					errorMessage = SQL.BuscarError(resultCode);
+				}
 
-				SQL.Close();
+
+				
 			}			
 
 		}
@@ -41,12 +46,12 @@ namespace Tarea_2_BD.Pages.View.List
 
 		public int ListarMovimientos(string nombreEmpleado)
 		{
+			SQL.Open();
 			SQL.LoadSP("[dbo].[ListarMovimientos]");
 
 			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
 			SQL.OutParameter("@OutValorDocumentoidentidad", SqlDbType.Int, 0);
 			SQL.OutParameter("@OutSaldo", SqlDbType.Money, 0);
-			SQL.OutParameter("@OutErrorMessage", SqlDbType.VarChar, 32);
 
 			SQL.InParameter("@InEmpleado", nombreEmpleado, SqlDbType.VarChar);
 
@@ -67,9 +72,8 @@ namespace Tarea_2_BD.Pages.View.List
 					}
 					else
 					{
-						dr.NextResult();
-						errorMessage = dr.GetString(0);
 						Console.WriteLine("Error al llamar al SP");
+						SQL.Close();
 						return resultCode;
 					}
 
@@ -114,6 +118,7 @@ namespace Tarea_2_BD.Pages.View.List
 					listaMovimientos.Add(movimiento);
 				}
 
+				SQL.Close();
 				return resultCode;
 			}
 		}

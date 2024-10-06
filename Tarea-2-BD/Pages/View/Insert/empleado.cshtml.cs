@@ -20,17 +20,14 @@ namespace Tarea_2_BD.Pages.View.Insert
         {
             using (SQL.connection)
             {
-                SQL.Open();
-
                 traerPuestos();
-
-                SQL.Close();    
             }
         }
 
 
         public int traerPuestos()
         {
+            SQL.Open();
             SQL.LoadSP("[dbo].[TraerPuestos]");
             SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
 
@@ -52,10 +49,9 @@ namespace Tarea_2_BD.Pages.View.Insert
                     }
                     else
                     {
-                        dr.NextResult();
-                        errorMessage = dr.GetString(0);
                         Console.WriteLine("Error al llamar al SP");
-                        return resultCode;
+						SQL.Close();
+						return resultCode;
                     }
 
                 }
@@ -72,16 +68,16 @@ namespace Tarea_2_BD.Pages.View.Insert
                     listaPuestos.Add(puesto);
                 }
             }
-
-               return resultCode;
+			SQL.Close();
+			return resultCode;
 
         }
 
         public int InsertarEmpleado(string Nombre, string PuestoSeleccionado, string ValorDocId)
         {
+            SQL.Open();
             SQL.LoadSP("[dbo].[InsertarEmpleado]");
             SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
-            SQL.OutParameter("@OutErrorMessage", SqlDbType.VarChar, 128);
 
             SQL.InParameter("@InPuesto", PuestoSeleccionado, SqlDbType.VarChar);
             SQL.InParameter("@InNombre", Nombre, SqlDbType.VarChar);
@@ -94,8 +90,8 @@ namespace Tarea_2_BD.Pages.View.Insert
             int resultCode = (int)SQL.command.Parameters["@OutResultCode"].Value;
             if (resultCode != 0)
             {
-                errorMessage = (string)SQL.command.Parameters["@OutErrorMessage"].Value;
-                return resultCode;
+				SQL.Close();
+				return resultCode;
             }
             return resultCode;
         }
@@ -108,61 +104,59 @@ namespace Tarea_2_BD.Pages.View.Insert
             int resultCode;
             bool esSoloAlfabeticoYGuionBajo = Nombre.All(c => char.IsLetter(c) || c == '_' || c == ' ');
 
-            //primero las validaciones
+			//primero las validaciones
+
+			using (SQL.connection)
+			{
+
+                resultCode = traerPuestos();
+
+				if (resultCode != 0)
+				{
+					errorMessage = SQL.BuscarError(resultCode);
+					return Page();
+				}
+
+				if (string.IsNullOrEmpty(Nombre) || string.IsNullOrEmpty(ValorDocId) || string.IsNullOrEmpty(PuestoSeleccionado))
+                {
+                    errorMessage = "Los espacios no pueden ir vacios";
+                    return Page();
+                }
 
 
-            if (string.IsNullOrEmpty(Nombre) || string.IsNullOrEmpty(ValorDocId) || string.IsNullOrEmpty(PuestoSeleccionado))
-            {
-                errorMessage = "Los espacios no pueden ir vacios";
-                return Page();
-            }
+                //verifica que el usuario no haya ingresado caracteres no validos 
+                if (esSoloAlfabeticoYGuionBajo)
+                {
+                    empleado.Nombre = Nombre;
+                }
+                else
+                {
+                    errorMessage = "El nombre solo puede tener caracteres del alfabeto o guiones";
+                    return Page();
+                }
 
-
-            //verifica que el usuario no haya ingresado caracteres no validos 
-            if (esSoloAlfabeticoYGuionBajo)
-            {
-                empleado.Nombre = Nombre;
-            }
-            else
-            {
-                errorMessage = "El nombre solo puede tener caracteres del alfabeto o guiones";
-                return Page();
-            }
-
-            //verifica que el usairo si haya ingresado el salario en formato correcto
-            try
-            {
-                int Salar = int.Parse(ValorDocId);
-                empleado.ValorDocumentoIdentidad = Salar;
-            }
-            catch
-            {
-                errorMessage = "El documento de identidad debe ser numerico";
-                return Page();
-            }
-
-
-
-
-
-
-            using (SQL.connection)
-            {
-                SQL.Open();
-
-                traerPuestos();
+                //verifica que el usairo si haya ingresado el salario en formato correcto
+                try
+                {
+                    int Salar = int.Parse(ValorDocId);
+                    empleado.ValorDocumentoIdentidad = Salar;
+                }
+                catch
+                {
+                    errorMessage = "El documento de identidad debe ser numerico";
+                    return Page();
+                }
 
                 resultCode = InsertarEmpleado(Nombre, PuestoSeleccionado, ValorDocId);
 
-                SQL.Close();
+                if (resultCode != 0)
+                {
+                    errorMessage = SQL.BuscarError(resultCode);
+                    return Page();
+                }
             }
-
-            if (resultCode != 0)
-            {
-                return Page();
-            }
-
             return RedirectToPage("/View/List/Employee");
+
 
 
         }

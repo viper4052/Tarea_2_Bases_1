@@ -43,7 +43,7 @@
 
 	<div class="form-group">
 		<label for="movimiento">Seleccione el movimiento:</label>
-
+		
 		<select id="movimiento" name="movimientoSeleccionado" class="form-control">
 			<option value="">-- Seleccione --</option>
 			@foreach (var item in @Model.listaTipoMovimientos)
@@ -52,7 +52,17 @@
 			}
 		</select>
 	</div>
-
+	</br>
 	<button type="submit" class="btn btn-primary">Solicitar</button>
+
+
 </form>
+
+
+</br>
+<div class="col-sm-3 d-grid">
+	<a href="/View/List/Movimiento" class="btn btn-primary">Regresar</a>
+</div>
+
+
 

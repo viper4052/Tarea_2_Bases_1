@@ -15,7 +15,7 @@ y los entrega, junto a la lista de todos sus movimientos*/
 
 --  @outResultCode: codigo de resultado de ejecucion. 0 Corrio sin errores, 
 
-CREATE PROCEDURE [dbo].[TraerPuestos]
+ALTER PROCEDURE [dbo].[TraerPuestos]
 	@OutResultCode INT OUTPUT 
 
 AS
@@ -39,9 +39,6 @@ BEGIN
 
 		SET @OutResultCode = 50008;
 
-		SELECT Er.Descripcion as Descripcion
-		FROM dbo.Error Er
-		WHERE Er.Codigo = @OutResultCode;
 
 		INSERT INTO dbo.DBError VALUES 
 		(

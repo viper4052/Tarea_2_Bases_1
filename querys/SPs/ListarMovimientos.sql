@@ -17,13 +17,11 @@ y los entrega, junto a la lista de todos sus movimientos*/
 --  @InEmpleado: De el se toma que empleado es 
 --  @OutValorDocumentoidentidad: da el valor del Documento de identidad
 --  @OutSaldo : da el saldo actual del empleado
---  @OutErrorMessage : da el mensaje de error en caso de haber ocurrido un error 
 
 ALTER PROCEDURE [dbo].[ListarMovimientos]
 	@OutResultCode INT OUTPUT 
 	, @OutValorDocumentoidentidad INT OUTPUT
 	, @OutSaldo MONEY OUTPUT
-	, @OutErrorMessage VARCHAR(128) OUTPUT
 	, @InEmpleado VARCHAR(128)
 
 AS
@@ -96,10 +94,6 @@ BEGIN
 		-- si no se logra insertar se denomina como error de la BD
 
 		SET @OutResultCode = 50008;
-
-		SELECT Er.Descripcion as Descripcion
-		FROM dbo.Error Er
-		WHERE Er.Codigo = @OutResultCode;
 
 		INSERT INTO dbo.DBError VALUES 
 		(

@@ -12,7 +12,6 @@ lista todos los activos*/
 --  Descripcion de parametros: 
 
 --  @outResultCode: codigo de resultado de ejecucion. 0 Corrio sin errores, 
---  @OutMensajeError: En caso de haber error ahi se ve desplegado
 --  @InLetters: las letras a buscar
 --  @InNumbers: los numeros a buscar 
 
@@ -20,7 +19,6 @@ lista todos los activos*/
 
 ALTER PROCEDURE [dbo].[ListarEmpleados]
 	@OutResulTCode INT OUTPUT
-	, @OutMensajeError VARCHAR(128) OUTPUT
 	, @InLetters VARCHAR(128)
 	, @InNumbers INT 
 	, @InUsername VARCHAR(128)
@@ -34,7 +32,6 @@ BEGIN
 	BEGIN TRY
 
 	SET @OutResulTCode = 0;
-	SET @OutMensajeError = ' '; 
 	SELECT @OutResulTCode AS OutResulTCode;
 
 	--aqui se dira que tipo de listado hubo 
@@ -162,12 +159,6 @@ BEGIN
             GETDATE()
         );
 		SET @OutResulTCode = 50008;
-
-		SELECT @OutMensajeError = Descripcion 
-		FROM dbo.Error 
-		WHERE Codigo = @OutResulTCode;
-
-		SELECT @OutMensajeError AS OutMensajeError;  
 
 	END CATCH 
 

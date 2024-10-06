@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Net;
 using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace Tarea_2_BD.Pages.LogIn
 {
@@ -25,6 +26,12 @@ namespace Tarea_2_BD.Pages.LogIn
           
          
             int tiempoFuera = GetTiempoBloqueado();
+
+            if (tiempoFuera == 50008) //error de BD
+            {
+                errorMessage = SQL.BuscarError(tiempoFuera);
+                return;
+            }
             
             if(tiempoFuera < 0)
             {
@@ -50,6 +57,13 @@ namespace Tarea_2_BD.Pages.LogIn
             SQL.ExecSP();
             SQL.Close();
 
+
+            int resultCode = (int)SQL.command.Parameters["@OutResultCode"].Value;
+
+            if (resultCode != 0)
+            {
+                return resultCode;
+            }
             try
             {
                 int Time = (int)SQL.command.Parameters["@OutTime"].Value;
@@ -74,14 +88,12 @@ namespace Tarea_2_BD.Pages.LogIn
 
 			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
 			SQL.OutParameter("@OutIntentos", SqlDbType.Int, 0);
-			SQL.OutParameter("@OutMensajeError", SqlDbType.VarChar, 128);
 
 			SQL.ExecSP();
 			SQL.Close();
 
             intentos = (int)SQL.command.Parameters["@OutIntentos"].Value;
 
-            errorMessage = (string)SQL.command.Parameters["@OutMensajeError"].Value;
 
 			if (intentos == 0)
             {
@@ -139,6 +151,8 @@ namespace Tarea_2_BD.Pages.LogIn
 
                 if (outResultCode != 0 )
                 {
+
+                    errorMessage = SQL.BuscarError(outResultCode);
                     
                     return Page();
 				}

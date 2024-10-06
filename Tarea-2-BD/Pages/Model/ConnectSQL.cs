@@ -76,37 +76,7 @@ namespace Tarea_2_BD.Pages.Model
                                                              --------------------------*/
        
         
-        public int IngresarBitacora
-            (
-            String TipoEvento
-            , String Descripcion
-            , String Username
-            , String PostInIP
-            , DateTime Date
-            )
-        {
-            Open();
-
-            //cargamos el SP
-            LoadSP("[dbo].[IngresarBitacora]");
-
-            //Cargamos Parametros 
-            InParameter("@InTipoDeEvento",TipoEvento, SqlDbType.VarChar);
-            InParameter("@InDescripcion", Descripcion, SqlDbType.VarChar);
-            InParameter("@InUsername", Username,SqlDbType.VarChar);
-            InParameter("@InPostInIP", PostInIP,SqlDbType.VarChar);
-            InParameter("@InPostTime", Date, SqlDbType.DateTime);
-
-            OutParameter("@OutResultCode", SqlDbType.Int, 0);
-
-            //lo ejecutamos 
-            ExecSP();
-
-            Close();
-
-            return (int)command.Parameters["@OutResultCode"].Value; 
-        }
-
+        
 
 
         public String BuscarError(int resultCode)//retorna mensajes de error de acuerdo al codigo

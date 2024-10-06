@@ -13,7 +13,6 @@ GO
 --  Descripcion de parametros: 
 
 --  @outResultCode: codigo de resultado de ejecucion. 0 Corrio sin errores, 
---  @OutMensajeError: aqui se dejara el mensaje de error (en caso de haberlo)
 --  @OutIntentos: retorna si se cancelo el login 
 --  @InUsername: aqui el posible username del usuario con el que estamos trabajando 
 --  @InPassword: aqui el posible password del usuario con el que estamos trabajando 
@@ -23,7 +22,6 @@ GO
 
 ALTER PROCEDURE [dbo].[Login]
     @OutResulTCode INT OUTPUT
-	, @OutMensajeError VARCHAR(128) OUTPUT
 	, @OutIntentos INT OUTPUT
 	, @InUsername VARCHAR(128)
 	, @InPassword VARCHAR(128)
@@ -39,7 +37,6 @@ BEGIN
 
 	SET @OutResulTCode = 0;
 	SET @OutIntentos = 1;
-	SET @OutMensajeError = ' ';
 	DECLARE @TipoDeEvento VARCHAR(128)
 			, @Descripcion VARCHAR(128)
 			, @Intento INT
@@ -80,16 +77,6 @@ BEGIN
 		END 
 		
 	
-	--Ahora toca revisar si se genero un error
-	--en ese caso crear el mensaje de error 
-
-	IF (@OutResulTCode <> 0)
-	BEGIN 
-		SELECT @OutMensajeError = Descripcion 
-		FROM dbo.Error
-		WHERE Codigo = @OutResulTCode; 
-	END; 
-
 
 	--Ya que @InUsername de fijo existe y @TipoDeEvento tambien
 	--saquemos sus Ids 
@@ -195,10 +182,6 @@ BEGIN
 			, @InPostTime
 		)
 
-		SELECT @OutMensajeError = Descripcion 
-		FROM dbo.Error
-		WHERE Codigo = @OutResulTCode; 
-				
 
 	END 
 
@@ -212,6 +195,8 @@ BEGIN
 	BEGIN 
 	ROLLBACK; 
 	END; 
+
+
 	INSERT INTO dbo.DBError VALUES 
 		(
             SUSER_SNAME(),
@@ -225,10 +210,6 @@ BEGIN
         );
 		SET @OutResulTCode = 50008;
 		
-		SELECT @OutMensajeError = Descripcion 
-		FROM dbo.Error
-		WHERE Codigo = @OutResulTCode; 
-
 
 	END CATCH 
     SET NOCOUNT OFF;
