@@ -7,7 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE PROCEDURE [dbo].[EliminaEmpleado]
+ALTER PROCEDURE [dbo].[EliminaEmpleado]
 	/*
 		Elimina de forma logica, solo asigna el valor de la columna
 		EsActivo a 0, y no elimina de la base de datos.
@@ -35,18 +35,18 @@ CREATE PROCEDURE [dbo].[EliminaEmpleado]
 
 			-- Variables de insercion a bitacora
 			DECLARE @TipoDeEvento VARCHAR(32)
-					, @Descripcion VARCHAR(32);
-					, @VarNombre VARCHAR(32) = Empleado.Nombre;
-					, @VarValorDocId INT = Empleado.ValorDocumentoIdentidad;
-					, @VarIdPuesto INT = E.IdPuesto
-					, @SaldoActual MONEY = E.SaldoVacaciones
+					, @Descripcion VARCHAR(32)
+					, @VarNombre VARCHAR(32) = Empleado.Nombre
+					, @VarValorDocId INT = Empleado.ValorDocumentoIdentidad
+					, @VarIdPuesto INT = Empleado.IdPuesto
+					, @SaldoActual MONEY = Empleado.SaldoVacaciones
 
 			PrevEsActivo = Empleado.EsActivo -- asigna el valor anterior en caso de error
 			UPDATE [dbo].[Empleado] SET EsActivo = 0
 			WHERE Empleado.Nombre LIKE @InRefName
 			/* WHERE Empleado.ValorDocumentoIdentidad LIKE @InRefDocumentoIdentidad */
 		
-		BEGIN CATCH
+		CATCH
 			INSERT INTO [dbo].[DBError] VALUES 
 			(
 				SUSER_SNAME(),
