@@ -113,11 +113,39 @@ namespace Tarea_2_BD.Pages.View.Insert
 
 		}
 
-		public IActionResult OnPost()
+
+
+		public int InsertarMovimiento(string empleado, string movimiento, decimal monto)
 		{
+			SQL.LoadSP("[dbo].[InsertarMovimiento]");
+			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);
+			SQL.OutParameter("@OutError", SqlDbType.VarChar, 128);
+
+			SQL.InParameter("@InEmpleado", empleado, SqlDbType.VarChar);
+			SQL.InParameter("@InMonto", monto, SqlDbType.Money);
+			SQL.InParameter("@InUserName", (string)HttpContext.Session.GetString("Usuario"), SqlDbType.VarChar);
+			SQL.InParameter("@InPostInIP", HttpContext.Connection.RemoteIpAddress?.ToString(), SqlDbType.VarChar);
+			SQL.InParameter("@InPostTime", DateTime.Now, SqlDbType.DateTime);
+			SQL.InParameter("@InNombreMovimiento", movimiento, SqlDbType.VarChar);
+
+
+			SQL.ExecSP();
+			int resultCode = (int)SQL.command.Parameters["@OutResultCode"].Value;
+			if (resultCode != 0)
+			{
+				errorMessage = (string)SQL.command.Parameters["@OutError"].Value;
+				return resultCode;
+			}
+			return resultCode;
+
+		}
+
+			public IActionResult OnPost()
+			{
 			string movimiento = Request.Form["movimientoSeleccionado"];
 			string monto = Request.Form["Monto"];
 			decimal montoReal;
+			int resultCode;
 
 
 
@@ -125,46 +153,59 @@ namespace Tarea_2_BD.Pages.View.Insert
 			{
 				SQL.Open();
 				string empleado = (string)HttpContext.Session.GetString("Empleado");
-				int resultCode = TraerTiposDeMovimiento(empleado); //trae los tipos de movimiento y los datos del empleado 
+				resultCode = TraerTiposDeMovimiento(empleado); //trae los tipos de movimiento y los datos del empleado 
 
+
+				
+
+
+				// Ahora puedes usar el valor seleccionado (movimientoSeleccionado)
+				if (string.IsNullOrEmpty(movimiento))
+				{
+					// Lógica con el valor seleccionado
+					// Ejemplo: Procesar el nombre seleccionado
+					errorMessage = "Tiene que seleccionar un movimiento";
+					Console.WriteLine(errorMessage);
+					return Page();
+				}
+
+				if (string.IsNullOrEmpty(monto))
+				{
+					// Lógica con el valor seleccionado
+					// Ejemplo: Procesar el nombre seleccionado
+					errorMessage = "El monto no puede ir vacío";
+					Console.WriteLine(errorMessage);
+					return Page();
+				}
+
+				try
+				{
+					montoReal = Convert.ToDecimal(monto);
+				}
+				catch
+				{
+					errorMessage = "El monto debe ser un valor de Dinero";
+					Console.WriteLine(errorMessage);
+					return Page();
+				}
+
+				Console.WriteLine(montoReal);
+				Console.WriteLine(movimiento);
+
+
+				 resultCode = InsertarMovimiento(empleado, movimiento, montoReal); //trae los tipos de movimiento y los datos del empleado 
 
 				SQL.Close();
+
 			}
 
-			// Ahora puedes usar el valor seleccionado (movimientoSeleccionado)
-			if (string.IsNullOrEmpty(movimiento))
+			if (resultCode != 0)
 			{
-				// Lógica con el valor seleccionado
-				// Ejemplo: Procesar el nombre seleccionado
-				errorMessage = "Tiene que seleccionar un movimiento";
-				Console.WriteLine(errorMessage);
 				return Page();
 			}
 
-			if (string.IsNullOrEmpty(monto))
-			{
-				// Lógica con el valor seleccionado
-				// Ejemplo: Procesar el nombre seleccionado
-				errorMessage = "El monto no puede ir vacío";
-				Console.WriteLine(errorMessage);
-				return Page();
-			}
-
-			try
-			{
-				montoReal = Convert.ToDecimal(monto);
-			}
-			catch
-			{
-				errorMessage = "El monto debe ser un valor de Dinero";
-				Console.WriteLine(errorMessage);
-				return Page();
-			}
-
-			Console.WriteLine(montoReal);
-			Console.WriteLine(movimiento);
-
-			return Page();
+			
+			return RedirectToPage("/View/List/Movimiento");
 
 
 
