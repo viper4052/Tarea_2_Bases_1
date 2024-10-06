@@ -25,10 +25,15 @@ GO
 */
 ALTER PROCEDURE [dbo].[EditaEmpleado]
 	@OutResulTCode INT OUTPUT
+	, @OutMensajeError VARCHAR(128)
 	, @InRefName VARCHAR(128) /* ESTE ES EL NOMBRE DEL EMPLEADO ANTES DE CUALQUIER EDICION */
 	, @InNewIdPuesto INT				= NULL
 	, @InNewNombre VARCHAR(128)			= NULL
 	, @InNewValorDocumentoIdentidad INT = NULL
+	, @InUsername VARCHAR(128)
+	, @InPassword VARCHAR(128)
+	, @InPostInIP VARCHAR(128)
+	, @InPostTime DATETIME 
 	
 	AS
 
@@ -46,9 +51,9 @@ ALTER PROCEDURE [dbo].[EditaEmpleado]
 
 			-- Variables de insercion a bitacora
 			DECLARE @TipoDeEvento VARCHAR(32)
-					, @Descripcion VARCHAR(32);
-					, @PrevNombre VARCHAR(32) = E.Nombre;
-					, @PrevValorDocID INT = E.ValorDocumentoIdentidad;
+					, @Descripcion VARCHAR(32)
+					, @PrevNombre VARCHAR(32) = Empleado.Nombre
+					, @PrevValorDocID INT = Empleado.ValorDocumentoIdentidad
 					, @PrevIdPuesto INT = E.IdPuesto
 					, @SaldoActual MONEY = E.SaldoVacaciones
 
@@ -91,7 +96,7 @@ ALTER PROCEDURE [dbo].[EditaEmpleado]
 				, @InPostTime
 			);
 
-		BEGIN CATCH
+		CATCH
 			INSERT INTO dbo.DBError VALUES 
 			(
 				SUSER_SNAME(),
@@ -142,7 +147,5 @@ ALTER PROCEDURE [dbo].[EditaEmpleado]
 				, @InPostTime
 			);
 		
-		END CATCH
-
 		SET NOCOUNT OFF
 	END;
