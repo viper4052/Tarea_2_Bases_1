@@ -88,7 +88,7 @@ BEGIN
 			, Username
 			, IpAdress
 		FROM @movimiento AS movimientos
-		ORDER BY Fecha DESC; 
+		ORDER BY Fecha DESC, Estampa DESC; 
 		
 		
 	END TRY

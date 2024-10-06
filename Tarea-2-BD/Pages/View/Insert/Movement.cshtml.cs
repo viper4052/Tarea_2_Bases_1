@@ -140,8 +140,8 @@ namespace Tarea_2_BD.Pages.View.Insert
 
 		}
 
-			public IActionResult OnPost()
-			{
+		public IActionResult OnPost()
+		{
 			string movimiento = Request.Form["movimientoSeleccionado"];
 			string monto = Request.Form["Monto"];
 			decimal montoReal;
@@ -203,12 +203,8 @@ namespace Tarea_2_BD.Pages.View.Insert
 			{
 				return Page();
 			}
-
-			
+				
 			return RedirectToPage("/View/List/Movimiento");
-
-
-
 		}
 
 
