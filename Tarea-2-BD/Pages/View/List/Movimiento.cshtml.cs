@@ -47,7 +47,8 @@ namespace Tarea_2_BD.Pages.View.List
 
 		public int ListarMovimientos(string nombreEmpleado)
 		{
-			SQL.Open();
+            ViewData["ShowLogoutButton"] = true;
+            SQL.Open();
 			SQL.LoadSP("[dbo].[ListarMovimientos]");
 
 			SQL.OutParameter("@OutResultCode", SqlDbType.Int, 0);

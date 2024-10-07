@@ -22,7 +22,7 @@
                         <!-- Puedes agregar más enlaces de navegación aquí si es necesario -->
                     </ul>
                     <ul class="navbar-nav ms-auto">
-                        @if ((bool)ViewData["ShowLogoutButton"])
+                        @if ((bool)ViewData["ShowLogoutButton"] && ViewData["ShowLogoutButton"] != null)
                         {
                             <a class="btn btn-primary" asp-page="/Logout/logout">Logout</a>
                         }

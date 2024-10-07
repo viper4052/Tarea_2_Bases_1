@@ -1,0 +1,27 @@
+﻿@page
+@model Tarea_2_BD.Pages.View.UDC.ConsultarModel
+@{
+}
+
+
+
+<h3>Empleado</h3>
+<dl>
+	<dt>Nombre:</dt>
+	<dd>@Model.empleado.Nombre</dd>
+
+	<dt>Documento de Identidad:</dt>
+	<dd>@Model.empleado.ValorDocumentoIdentidad</dd>
+
+	<dt>Puesto:</dt>
+	<dd>@Model.empleado.Puesto</dd>
+
+	<dt>Saldo de Vacaciones:</dt>
+	<dd>@Model.empleado.SaldoVacaciones</dd>
+
+</dl>
+
+
+<a class="btn btn-primary"  href="/View/List/Employee">Regresar</a>
+
+

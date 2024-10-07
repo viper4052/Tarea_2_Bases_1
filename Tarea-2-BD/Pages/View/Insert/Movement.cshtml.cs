@@ -146,7 +146,8 @@ namespace Tarea_2_BD.Pages.View.Insert
 
 		public IActionResult OnPost()
 		{
-			string movimiento = Request.Form["movimientoSeleccionado"];
+            ViewData["ShowLogoutButton"] = true;
+            string movimiento = Request.Form["movimientoSeleccionado"];
 			string monto = Request.Form["Monto"];
 			decimal montoReal;
 			int resultCode;

@@ -1,0 +1,28 @@
+﻿@page
+@model Tarea_2_BD.Pages.View.UDC.eliminarModel
+@{
+}
+
+@if (Model.errorMessage.Length > 0)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong>@Model.errorMessage</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="close"></button>
+    </div>
+}
+
+<h2>Eliminar empleado</h2>
+
+
+
+<h6>Seguro que quiere eliminar el empleado?</h6>
+
+<form method="post">
+    
+    <button class="btn btn-primary" name="confirmo" type="submit" value="1">Confirmar</button>
+
+    <button class="btn btn-primary" name="noConfirmo" type="submit" value="0">Regresar</button>
+
+
+</form>
+

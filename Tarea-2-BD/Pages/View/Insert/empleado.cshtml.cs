@@ -94,11 +94,13 @@ namespace Tarea_2_BD.Pages.View.Insert
 				SQL.Close();
 				return resultCode;
             }
+            SQL.Close();
             return resultCode;
         }
 
         public IActionResult OnPost()
         {
+            ViewData["ShowLogoutButton"] = true;
             string ValorDocId = Request.Form["ValorDocId"];
             string Nombre = Request.Form["Nombre"];
             string PuestoSeleccionado = Request.Form["PuestoSeleccionado"];

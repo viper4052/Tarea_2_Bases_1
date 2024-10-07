@@ -11,63 +11,115 @@ ALTER PROCEDURE [dbo].[EliminaEmpleado]
 	/*
 		Elimina de forma logica, solo asigna el valor de la columna
 		EsActivo a 0, y no elimina de la base de datos.
-
-		No se cual es mas comodo, si con valor de documento de identidad
-		o con el nombre unico de empleado
+	
 	*/
 	@OutResulTCode INT OUTPUT
 	, @InRefName VARCHAR(128)
-	, @PrevEsActivo INT
-    , @OutMensajeError VARCHAR(128)
-    , @InNewIdPuesto INT = NULL
-    , @InNewNombre VARCHAR(128) = NULL
-    , @InNewValorDocumentoIdentidad INT = NULL
     , @InUsername VARCHAR(128)
-    , @InPassword VARCHAR(128)
     , @InPostInIP VARCHAR(128)
     , @InPostTime DATETIME
+	, @InConfirmacion INT --dice si si se confirma el borrado
 
 	AS
-		BEGIN
-		SET NOCOUNT ON;
+	BEGIN
+	SET NOCOUNT ON;
     BEGIN TRY
 
-			SELECT  Empleado.ValorDocumentoIdentidad
-					, Empleado.Nombre
-					, Empleado.IdPuesto
-					, Empleado.SaldoVacaciones
-					, Empleado.EsActivo
-			FROM [dbo].[Empleado] Empleado
-			WHERE Empleado.Nombre LIKE @InRefName
+	DECLARE @Descripcion VARCHAR(256)
+			, @Puesto VARCHAR(16)
+			, @ValorDoc INT
+			, @Saldo MONEY
+			, @IdEvento INT;
+
+	SET @OutResulTCode = 0;
+	SELECT @Puesto = P.Nombre
+	FROM dbo.Empleado E
+	INNER JOIN dbo.Puesto P ON E.IdPuesto = P.Id
+	WHERE E.Nombre = @InRefName;
+
+	SELECT @ValorDoc = E.ValorDocumentoIdentidad
+	FROM dbo.Empleado E
+	WHERE E.Nombre = @InRefName;
+
+	SELECT @Saldo = E.SaldoVacaciones
+	FROM dbo.Empleado E
+	WHERE E.Nombre = @InRefName;
+
+	SET @Descripcion = CONVERT(VARCHAR(32),@ValorDoc)
+					   +','+ @InRefName
+					   +','+ @Puesto
+
+	IF(@InConfirmacion = 0)
+	BEGIN 
+
+	SELECT @IdEvento = TE.Id 
+	FROM dbo.TipoEvento TE
+	WHERE TE.Nombre = 'Intento de borrado';
+	INSERT INTO dbo.BitacoraEvento
+	(
+		IdTipoEvento
+		, Descripcion
+		, IdPostByUser
+		, PostInIP
+		, PostTime
+	)
+	VALUES
+	(
+		@IdEvento
+		, @Descripcion
+		, (SELECT U.Id 
+		   FROM dbo.Usuario U
+		   WHERE U.Username = @InUsername )
+		, @InPostInIP
+		, @InPostTime
+	)
+
+	END
+	ELSE
+	BEGIN
+	SET @Descripcion = @Descripcion 
+					   +','+ CONVERT(VARCHAR(32),@Saldo);
+					   
+	SELECT @IdEvento = TE.Id 
+	FROM dbo.TipoEvento TE
+	WHERE TE.Nombre = 'Borrado exitoso';
+
+	BEGIN TRANSACTION;
+	
+	INSERT INTO dbo.BitacoraEvento
+	(
+		IdTipoEvento
+		, Descripcion
+		, IdPostByUser
+		, PostInIP
+		, PostTime
+	)
+	VALUES
+	(
+		@IdEvento
+		, @Descripcion
+		, (SELECT U.Id 
+		   FROM dbo.Usuario U
+		   WHERE U.Username = @InUsername )
+		, @InPostInIP
+		, @InPostTime
+	)
+
+	UPDATE [dbo].[Empleado] WITH (ROWLOCK)
+	SET EsActivo = 0
+	WHERE Empleado.Nombre = @InRefName
+
+	COMMIT TRANSACTION;
+	END;
 
 
-			-- Variables de inserción a bitácora
-			DECLARE @TipoDeEvento VARCHAR(128)
-					, @Descripcion VARCHAR(128)
-					, @VarNombre VARCHAR(128)
-					, @VarValorDocId INT
-					, @VarIdPuesto INT
-					, @SaldoActual MONEY
-					, @PrevIdPuesto INT
-					, @PrevValorDocID INT;
-
-			-- Obtener valores originales
-			SELECT @VarNombre = Empleado.Nombre
-				   , @PrevIdPuesto = Empleado.IdPuesto
-				   , @PrevValorDocID = Empleado.ValorDocumentoIdentidad
-				   , @VarIdPuesto = Empleado.IdPuesto
-				   , @SaldoActual = Empleado.SaldoVacaciones
-				   , @PrevEsActivo = Empleado.EsActivo -- asigna el valor anterior en caso de error
-			FROM [dbo].[Empleado] Empleado
-			WHERE Empleado.Nombre = @InRefName
-
-
-			
-			UPDATE [dbo].[Empleado] SET EsActivo = 0
-			WHERE Empleado.Nombre LIKE @InRefName
-			/* WHERE Empleado.ValorDocumentoIdentidad LIKE @InRefDocumentoIdentidad */
 	END TRY
 	BEGIN CATCH
+		IF (@@TRANCOUNT >0)
+		BEGIN
+		ROLLBACK;
+		END;
+
 		INSERT INTO [dbo].[DBError] VALUES 
 		(
 			SUSER_SNAME(),
@@ -80,37 +132,7 @@ ALTER PROCEDURE [dbo].[EliminaEmpleado]
 			GETDATE()
 		);
 		SET @OutResulTCode = 50008;
-			
-		SELECT @OutMensajeError = Descripcion 
-		FROM [dbo].[Error] 
-		WHERE Codigo = @OutResulTCode;
-
-		SELECT @OutMensajeError AS OutMensajeError;
-
-		-- Si no logra borrar el empleado
-		SET @TipoDeEvento = 'Intento de borrado';
-		SET @Descripcion = @VarValorDocId + '' + @VarNombre + '' + @VarIdPuesto + '' + @SaldoActual;
-
-
-		-- En el caso que haya actualizado algun valor, devuelve a su valor original
-		UPDATE [dbo].[Empleado] 
-		SET EsActivo = @PrevEsActivo 
-		WHERE Empleado.Nombre LIKE @InRefName;
-
-		IF (@TipoDeEvento <> ' ')
-		BEGIN
-        INSERT INTO [dbo].[BitacoraEvento]
-		(
-			IdTipoEvento
-			, Descripcion
-		)
-        VALUES
-		(
-			(SELECT Id FROM dbo.TipoEvento 
-			WHERE Nombre = @TipoDeEvento)
-			, @Descripcion
-		);
-		END
+				
 	END CATCH;
 
     RETURN;

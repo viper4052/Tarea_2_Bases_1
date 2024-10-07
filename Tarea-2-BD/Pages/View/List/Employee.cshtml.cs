@@ -55,33 +55,36 @@ namespace Tarea_2_BD.Pages.View.List
 
 		public IActionResult OnPostEditarEmpleado()
 		{
-			
-			string busqueda = Request.Form["Nombre"];
+            ViewData["ShowLogoutButton"] = true;
+            string busqueda = Request.Form["Nombre"];
 			HttpContext.Session.SetString("Empleado", busqueda);
 			Console.WriteLine(busqueda);
 			Console.WriteLine("editar");
 
-			return Page();
-		}
+            return RedirectToPage("/View/UDC/Editar");
+        }
 		public IActionResult OnPostBorrarEmpleado()
 		{
-			string busqueda = Request.Form["Nombre"];
+            ViewData["ShowLogoutButton"] = true;
+            string busqueda = Request.Form["Nombre"];
 			HttpContext.Session.SetString("Empleado", busqueda);
 			Console.WriteLine(busqueda);
 			Console.WriteLine("borrar");
-			return Page();
+			return RedirectToPage("/View/UDC/Eliminar");
 		}
 		public IActionResult OnPostConsultarEmpleado()
 		{
-			string busqueda = Request.Form["Nombre"];
+            ViewData["ShowLogoutButton"] = true;
+            string busqueda = Request.Form["Nombre"];
 			HttpContext.Session.SetString("Empleado", busqueda);
 			Console.WriteLine(busqueda);
 			Console.WriteLine("empleado");
-			return Page();
+			return RedirectToPage("/View/UDC/Consultar");
 		}
 		public IActionResult OnPostConsultarMovimientos()
 		{
-			string busqueda = Request.Form["Nombre"];
+            ViewData["ShowLogoutButton"] = true;
+            string busqueda = Request.Form["Nombre"];
 			HttpContext.Session.SetString("Empleado", busqueda);
 			Console.WriteLine(busqueda);
 			Console.WriteLine("movimientos");
@@ -165,7 +168,8 @@ namespace Tarea_2_BD.Pages.View.List
 
 		public void OnPostFiltrarEmpleados()
         {
-			Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+            ViewData["ShowLogoutButton"] = true;
+            Ip = HttpContext.Connection.RemoteIpAddress?.ToString();
 			DateTime dateNow = DateTime.Now;
 
 			string busqueda = Request.Form["Filtrar"];
