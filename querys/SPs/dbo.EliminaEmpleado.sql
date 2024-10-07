@@ -32,6 +32,7 @@ ALTER PROCEDURE [dbo].[EliminaEmpleado]
 			, @IdEvento INT;
 
 	SET @OutResulTCode = 0;
+
 	SELECT @Puesto = P.Nombre
 	FROM dbo.Empleado E
 	INNER JOIN dbo.Puesto P ON E.IdPuesto = P.Id
@@ -79,7 +80,8 @@ ALTER PROCEDURE [dbo].[EliminaEmpleado]
 	BEGIN
 	SET @Descripcion = @Descripcion 
 					   +','+ CONVERT(VARCHAR(32),@Saldo);
-					   
+	
+
 	SELECT @IdEvento = TE.Id 
 	FROM dbo.TipoEvento TE
 	WHERE TE.Nombre = 'Borrado exitoso';
